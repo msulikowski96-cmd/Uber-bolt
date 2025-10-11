@@ -155,6 +155,22 @@ body {
     margin-bottom: 10px;
 }
 
+.stat-card {
+    border: none;
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    background: white;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    font-size: 3rem;
+}
+
 .big-result h2 {
     font-size: 2.5rem;
     font-weight: bold;

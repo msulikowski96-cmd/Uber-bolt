@@ -113,5 +113,129 @@ def oblicz():
     wynik = oblicz_oplacalnosc(dane)
     return jsonify(wynik)
 
+@app.route('/statystyki')
+def statystyki():
+    return render_template('statystyki.html')
+
+@app.route('/dane_statystyk')
+def dane_statystyk():
+    import plotly.graph_objects as go
+    import plotly.utils
+    import json
+    
+    try:
+        with open(PLIK, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+    except FileNotFoundError:
+        return jsonify({"error": "Brak danych"})
+    
+    kursy = []
+    kurs = {}
+    
+    for linia in linie:
+        if linia.startswith("["):
+            if kurs:
+                kursy.append(kurs)
+            kurs = {"data": linia[1:20]}
+        elif "Stawka godzinowa:" in linia:
+            kurs["stawka"] = float(linia.strip().split(":")[1].replace("zł/h", "").strip())
+        elif "Zysk netto:" in linia:
+            kurs["zysk"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
+        elif "Kwota (z napiwkiem):" in linia:
+            kurs["kwota"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
+    
+    if kurs and "stawka" in kurs:
+        kursy.append(kurs)
+    
+    if not kursy:
+        return jsonify({"error": "Brak danych"})
+    
+    # Wykres stawki godzinowej w czasie
+    daty = [k["data"] for k in kursy if "stawka" in k]
+    stawki = [k["stawka"] for k in kursy if "stawka" in k]
+    
+    fig_stawka = go.Figure()
+    fig_stawka.add_trace(go.Scatter(
+        x=daty, 
+        y=stawki,
+        mode='lines+markers',
+        name='Stawka godzinowa',
+        line=dict(color='#667eea', width=3),
+        marker=dict(size=8)
+    ))
+    fig_stawka.update_layout(
+        title='Stawka godzinowa w czasie',
+        xaxis_title='Data i czas',
+        yaxis_title='Stawka (zł/h)',
+        template='plotly_white',
+        height=400
+    )
+    
+    # Wykres zysków
+    zyski = [k["zysk"] for k in kursy if "zysk" in k]
+    
+    fig_zysk = go.Figure()
+    fig_zysk.add_trace(go.Bar(
+        x=daty,
+        y=zyski,
+        name='Zysk netto',
+        marker=dict(color='#10b981')
+    ))
+    fig_zysk.update_layout(
+        title='Zysk netto z kursów',
+        xaxis_title='Data i czas',
+        yaxis_title='Zysk (zł)',
+        template='plotly_white',
+        height=400
+    )
+    
+    # Statystyki godzinowe
+    from collections import defaultdict
+    stawki_po_godzinach = defaultdict(list)
+    
+    for k in kursy:
+        if "data" in k and "stawka" in k:
+            godzina = int(k["data"][11:13])
+            stawki_po_godzinach[godzina].append(k["stawka"])
+    
+    godziny = sorted(stawki_po_godzinach.keys())
+    srednie_stawki = [sum(stawki_po_godzinach[g])/len(stawki_po_godzinach[g]) for g in godziny]
+    
+    fig_godziny = go.Figure()
+    fig_godziny.add_trace(go.Bar(
+        x=[f"{g:02d}:00" for g in godziny],
+        y=srednie_stawki,
+        name='Średnia stawka',
+        marker=dict(color=srednie_stawki, colorscale='RdYlGn', showscale=True)
+    ))
+    fig_godziny.update_layout(
+        title='Średnia stawka godzinowa według godzin dnia',
+        xaxis_title='Godzina',
+        yaxis_title='Średnia stawka (zł/h)',
+        template='plotly_white',
+        height=400
+    )
+    
+    # Statystyki ogólne
+    suma_zyskow = sum(zyski)
+    srednia_stawka = sum(stawki) / len(stawki) if stawki else 0
+    najlepsza_stawka = max(stawki) if stawki else 0
+    najgorsza_stawka = min(stawki) if stawki else 0
+    najlepsza_godzina = godziny[srednie_stawki.index(max(srednie_stawki))] if srednie_stawki else 0
+    
+    return jsonify({
+        "wykres_stawka": json.loads(json.dumps(fig_stawka, cls=plotly.utils.PlotlyJSONEncoder)),
+        "wykres_zysk": json.loads(json.dumps(fig_zysk, cls=plotly.utils.PlotlyJSONEncoder)),
+        "wykres_godziny": json.loads(json.dumps(fig_godziny, cls=plotly.utils.PlotlyJSONEncoder)),
+        "statystyki": {
+            "suma_zyskow": f"{suma_zyskow:.2f}",
+            "srednia_stawka": f"{srednia_stawka:.2f}",
+            "najlepsza_stawka": f"{najlepsza_stawka:.2f}",
+            "najgorsza_stawka": f"{najgorsza_stawka:.2f}",
+            "liczba_kursow": len(kursy),
+            "najlepsza_godzina": f"{najlepsza_godzina:02d}:00"
+        }
+    })
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
