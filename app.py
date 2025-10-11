@@ -211,6 +211,34 @@ def cele():
         postep = oblicz_postep_celu()
         return jsonify({"cele": cele, "postep": postep})
 
+@app.route('/srednia_dnia')
+def srednia_dnia():
+    """Endpoint do pobierania średniej stawki godzinowej z dzisiaj."""
+    dzisiaj = datetime.datetime.now().strftime("%Y-%m-%d")
+    
+    try:
+        with open(PLIK, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+    except FileNotFoundError:
+        return jsonify({"srednia_dnia": "Brak danych"})
+    
+    stawki = []
+    dzien = None
+    
+    for linia in linie:
+        if linia.startswith("["):
+            data = linia[1:11]
+            dzien = data
+        elif "Stawka godzinowa:" in linia and dzien == dzisiaj:
+            wartosc = float(linia.strip().split(":")[1].replace("zł/h", "").strip())
+            stawki.append(wartosc)
+    
+    if stawki:
+        srednia = sum(stawki) / len(stawki)
+        return jsonify({"srednia_dnia": f"{srednia:.2f}"})
+    else:
+        return jsonify({"srednia_dnia": "Brak danych"})
+
 @app.route('/dane_statystyk')
 def dane_statystyk():
     import plotly.graph_objects as go

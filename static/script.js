@@ -144,25 +144,10 @@ window.addEventListener('load', async function() {
     
     // Wczytaj średnią dnia
     try {
-        const response = await fetch('/oblicz', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                dystans_dojazdu: 0,
-                czas_dojazdu: 1,
-                dystans_kursu: 0,
-                czas_kursu: 1,
-                kwota: 0,
-                procent_dla_kierowcy: 100,
-                spalanie: 5,
-                cena_paliwa: 6.5
-            })
-        });
-        const wynik = await response.json();
-        if (wynik.srednia_dnia !== 'Brak danych') {
-            document.getElementById('srednia-dnia').textContent = wynik.srednia_dnia + ' zł/h';
+        const response = await fetch('/srednia_dnia');
+        const dane = await response.json();
+        if (dane.srednia_dnia !== 'Brak danych') {
+            document.getElementById('srednia-dnia').textContent = dane.srednia_dnia + ' zł/h';
         }
     } catch (error) {
         console.log('Nie udało się wczytać średniej dnia');
