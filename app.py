@@ -1,14 +1,34 @@
-
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import datetime
+from database import init_db, User, get_user_folder
+from forms import LoginForm, RegistrationForm
 
 app = Flask(__name__)
-app.secret_key = 'taxi-calculator-secret-key-2025'
-PLIK = "kursy.txt"
-CELE_PLIK = "cele.txt"
+app.secret_key = 'taxi-calculator-secret-key-2025-auth'
+
+# Konfiguracja Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Zaloguj się, aby uzyskać dostęp do tej strony.'
+login_manager.login_message_category = 'info'
+
+# Inicjalizacja bazy danych
+init_db()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get_by_id(user_id)
+
+def get_user_file(filename):
+    """Zwraca ścieżkę do pliku użytkownika"""
+    user_folder = get_user_folder(current_user.id)
+    return f'{user_folder}/{filename}'
 
 def zapisz_do_pliku(dane):
-    with open(PLIK, "a", encoding="utf-8") as plik:
+    plik_path = get_user_file('kursy.txt')
+    with open(plik_path, "a", encoding="utf-8") as plik:
         plik.write(f"\n[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]\n")
         for klucz, wartosc in dane.items():
             plik.write(f"{klucz}: {wartosc}\n")
@@ -17,7 +37,8 @@ def zapisz_do_pliku(dane):
 def wczytaj_cele():
     """Wczytuje cele użytkownika z pliku."""
     try:
-        with open(CELE_PLIK, "r", encoding="utf-8") as plik:
+        plik_path = get_user_file('cele.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
             linie = plik.readlines()
             cele = {}
             for linia in linie:
@@ -30,7 +51,8 @@ def wczytaj_cele():
 
 def zapisz_cele(cele):
     """Zapisuje cele użytkownika do pliku."""
-    with open(CELE_PLIK, "w", encoding="utf-8") as plik:
+    plik_path = get_user_file('cele.txt')
+    with open(plik_path, "w", encoding="utf-8") as plik:
         for klucz, wartosc in cele.items():
             plik.write(f"{klucz}:{wartosc}\n")
 
@@ -41,7 +63,8 @@ def oblicz_postep_celu():
     cel_dzienny = float(cele.get("cel_dzienny", 300))
     
     try:
-        with open(PLIK, "r", encoding="utf-8") as plik:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
             linie = plik.readlines()
     except FileNotFoundError:
         return {"postep": 0, "cel": cel_dzienny, "procent": 0, "pozostalo": cel_dzienny}
@@ -70,7 +93,8 @@ def oblicz_postep_celu():
 def aktualizuj_srednia_dnia():
     """Aktualizuje średnią stawkę godzinową dla dzisiejszego dnia."""
     try:
-        with open(PLIK, "r", encoding="utf-8") as plik:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
             linie = plik.readlines()
     except FileNotFoundError:
         return None
@@ -95,7 +119,7 @@ def aktualizuj_srednia_dnia():
         nowe_linie.append(f"\n📊 Podsumowanie dnia {dzisiaj} - średnia stawka godzinowa: {srednia:.2f} zł/h\n")
         nowe_linie.append("=" * 40 + "\n")
 
-        with open(PLIK, "w", encoding="utf-8") as plik:
+        with open(plik_path, "w", encoding="utf-8") as plik:
             plik.writelines(nowe_linie)
         return srednia
     return None
@@ -148,21 +172,18 @@ def oblicz_oplacalnosc(dane):
     zapisz_do_pliku(dane_do_zapisu)
     srednia_dnia = aktualizuj_srednia_dnia()
     
-    # Sprawdzenie celów i powiadomienia
     cele = wczytaj_cele()
     min_stawka = float(cele.get("min_stawka", 30))
     postep = oblicz_postep_celu()
     
     powiadomienia = []
     
-    # Alert o niskiej stawce
     if stawka_godzinowa < min_stawka:
         powiadomienia.append({
             "typ": "warning",
             "tekst": f"⚠️ Stawka godzinowa ({stawka_godzinowa:.2f} zł/h) poniżej minimalnej ({min_stawka:.2f} zł/h)!"
         })
     
-    # Gratulacje za osiągnięcie celu
     if postep["procent"] >= 100:
         powiadomienia.append({
             "typ": "success",
@@ -188,7 +209,51 @@ def oblicz_oplacalnosc(dane):
         "powiadomienia": powiadomienia
     }
 
+# Routes autentykacji
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.verify_password(form.email.data, form.password.data)
+        if user:
+            login_user(user)
+            flash('Zalogowano pomyślnie!', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('index'))
+        else:
+            flash('Nieprawidłowy email lub hasło.', 'error')
+    
+    return render_template('login.html', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User.create(form.email.data, form.password.data)
+        if user:
+            flash('Konto utworzone pomyślnie! Możesz się teraz zalogować.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Ten email jest już zarejestrowany.', 'error')
+    
+    return render_template('register.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Wylogowano pomyślnie.', 'success')
+    return redirect(url_for('login'))
+
+# Routes aplikacji
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
@@ -198,20 +263,24 @@ def service_worker():
     return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
 
 @app.route('/oblicz', methods=['POST'])
+@login_required
 def oblicz():
     dane = request.json
     wynik = oblicz_oplacalnosc(dane)
     return jsonify(wynik)
 
 @app.route('/statystyki')
+@login_required
 def statystyki():
     return render_template('statystyki.html')
 
 @app.route('/platformy')
+@login_required
 def platformy():
     return render_template('platformy.html')
 
 @app.route('/cele', methods=['GET', 'POST'])
+@login_required
 def cele():
     if request.method == 'POST':
         dane = request.json
@@ -223,12 +292,14 @@ def cele():
         return jsonify({"cele": cele, "postep": postep})
 
 @app.route('/srednia_dnia')
+@login_required
 def srednia_dnia():
     """Endpoint do pobierania średniej stawki godzinowej z dzisiaj."""
     dzisiaj = datetime.datetime.now().strftime("%Y-%m-%d")
     
     try:
-        with open(PLIK, "r", encoding="utf-8") as plik:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
             linie = plik.readlines()
     except FileNotFoundError:
         return jsonify({"srednia_dnia": "Brak danych"})
@@ -251,13 +322,15 @@ def srednia_dnia():
         return jsonify({"srednia_dnia": "Brak danych"})
 
 @app.route('/dane_statystyk')
+@login_required
 def dane_statystyk():
     import plotly.graph_objects as go
     import plotly.utils
     import json
     
     try:
-        with open(PLIK, "r", encoding="utf-8") as plik:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
             linie = plik.readlines()
     except FileNotFoundError:
         return jsonify({"error": "Brak danych"})
@@ -283,7 +356,6 @@ def dane_statystyk():
     if not kursy:
         return jsonify({"error": "Brak danych"})
     
-    # Wykres stawki godzinowej w czasie
     daty = [k["data"] for k in kursy if "stawka" in k]
     stawki = [k["stawka"] for k in kursy if "stawka" in k]
     
@@ -304,7 +376,6 @@ def dane_statystyk():
         height=400
     )
     
-    # Wykres zysków
     zyski = [k["zysk"] for k in kursy if "zysk" in k]
     
     fig_zysk = go.Figure()
@@ -322,7 +393,6 @@ def dane_statystyk():
         height=400
     )
     
-    # Statystyki godzinowe
     from collections import defaultdict
     stawki_po_godzinach = defaultdict(list)
     
@@ -349,7 +419,6 @@ def dane_statystyk():
         height=400
     )
     
-    # Statystyki ogólne
     suma_zyskow = sum(zyski)
     srednia_stawka = sum(stawki) / len(stawki) if stawki else 0
     najlepsza_stawka = max(stawki) if stawki else 0
@@ -371,6 +440,7 @@ def dane_statystyk():
     })
 
 @app.route('/statystyki_platform')
+@login_required
 def statystyki_platform():
     """Endpoint do porównania platform."""
     import plotly.graph_objects as go
@@ -379,7 +449,8 @@ def statystyki_platform():
     from collections import defaultdict
     
     try:
-        with open(PLIK, "r", encoding="utf-8") as plik:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
             linie = plik.readlines()
     except FileNotFoundError:
         return jsonify({"error": "Brak danych"})
@@ -405,7 +476,6 @@ def statystyki_platform():
     if not kursy:
         return jsonify({"error": "Brak danych"})
     
-    # Grupowanie według platform
     dane_platform = defaultdict(lambda: {"stawki": [], "zyski": [], "liczba": 0})
     
     for kurs in kursy:
@@ -416,7 +486,6 @@ def statystyki_platform():
             dane_platform[platforma]["zyski"].append(kurs["zysk"])
         dane_platform[platforma]["liczba"] += 1
     
-    # Obliczanie średnich
     platformy = []
     srednie_stawki = []
     suma_zyskow_platform = []
@@ -430,7 +499,6 @@ def statystyki_platform():
         suma_zyskow_platform.append(suma_zyskow)
         liczba_kursow_platform.append(dane["liczba"])
     
-    # Wykres porównania średnich stawek
     fig_stawki = go.Figure()
     fig_stawki.add_trace(go.Bar(
         x=platformy,
@@ -448,7 +516,6 @@ def statystyki_platform():
         height=400
     )
     
-    # Wykres sumy zysków
     fig_zyski = go.Figure()
     fig_zyski.add_trace(go.Bar(
         x=platformy,
@@ -466,7 +533,6 @@ def statystyki_platform():
         height=400
     )
     
-    # Wykres liczby kursów
     fig_liczba = go.Figure()
     fig_liczba.add_trace(go.Bar(
         x=platformy,
@@ -484,7 +550,6 @@ def statystyki_platform():
         height=400
     )
     
-    # Najlepsza platforma
     if srednie_stawki:
         idx_najlepsza = srednie_stawki.index(max(srednie_stawki))
         najlepsza_platforma = platformy[idx_najlepsza]
