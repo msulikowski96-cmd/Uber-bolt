@@ -1,9 +1,11 @@
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 import datetime
 
 app = Flask(__name__)
+app.secret_key = 'taxi-calculator-secret-key-2025'
 PLIK = "kursy.txt"
+CELE_PLIK = "cele.txt"
 
 def zapisz_do_pliku(dane):
     with open(PLIK, "a", encoding="utf-8") as plik:
@@ -11,6 +13,59 @@ def zapisz_do_pliku(dane):
         for klucz, wartosc in dane.items():
             plik.write(f"{klucz}: {wartosc}\n")
         plik.write("-" * 40 + "\n")
+
+def wczytaj_cele():
+    """Wczytuje cele użytkownika z pliku."""
+    try:
+        with open(CELE_PLIK, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+            cele = {}
+            for linia in linie:
+                if ":" in linia:
+                    klucz, wartosc = linia.strip().split(":", 1)
+                    cele[klucz] = wartosc.strip()
+            return cele
+    except FileNotFoundError:
+        return {"cel_dzienny": "300", "min_stawka": "30"}
+
+def zapisz_cele(cele):
+    """Zapisuje cele użytkownika do pliku."""
+    with open(CELE_PLIK, "w", encoding="utf-8") as plik:
+        for klucz, wartosc in cele.items():
+            plik.write(f"{klucz}:{wartosc}\n")
+
+def oblicz_postep_celu():
+    """Oblicza postęp do dziennego celu."""
+    dzisiaj = datetime.datetime.now().strftime("%Y-%m-%d")
+    cele = wczytaj_cele()
+    cel_dzienny = float(cele.get("cel_dzienny", 300))
+    
+    try:
+        with open(PLIK, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+    except FileNotFoundError:
+        return {"postep": 0, "cel": cel_dzienny, "procent": 0, "pozostalo": cel_dzienny}
+    
+    suma_zysku = 0
+    dzien = None
+    
+    for linia in linie:
+        if linia.startswith("["):
+            data = linia[1:11]
+            dzien = data
+        elif "Zysk netto:" in linia and dzien == dzisiaj:
+            wartosc = float(linia.strip().split(":")[1].replace("zł", "").strip())
+            suma_zysku += wartosc
+    
+    procent = min((suma_zysku / cel_dzienny) * 100, 100) if cel_dzienny > 0 else 0
+    pozostalo = max(cel_dzienny - suma_zysku, 0)
+    
+    return {
+        "postep": suma_zysku,
+        "cel": cel_dzienny,
+        "procent": procent,
+        "pozostalo": pozostalo
+    }
 
 def aktualizuj_srednia_dnia():
     """Aktualizuje średnią stawkę godzinową dla dzisiejszego dnia."""
@@ -90,6 +145,32 @@ def oblicz_oplacalnosc(dane):
 
     zapisz_do_pliku(dane_do_zapisu)
     srednia_dnia = aktualizuj_srednia_dnia()
+    
+    # Sprawdzenie celów i powiadomienia
+    cele = wczytaj_cele()
+    min_stawka = float(cele.get("min_stawka", 30))
+    postep = oblicz_postep_celu()
+    
+    powiadomienia = []
+    
+    # Alert o niskiej stawce
+    if stawka_godzinowa < min_stawka:
+        powiadomienia.append({
+            "typ": "warning",
+            "tekst": f"⚠️ Stawka godzinowa ({stawka_godzinowa:.2f} zł/h) poniżej minimalnej ({min_stawka:.2f} zł/h)!"
+        })
+    
+    # Gratulacje za osiągnięcie celu
+    if postep["procent"] >= 100:
+        powiadomienia.append({
+            "typ": "success",
+            "tekst": f"🎉 Gratulacje! Osiągnąłeś dzienny cel ({postep['cel']:.2f} zł)!"
+        })
+    elif postep["procent"] >= 75:
+        powiadomienia.append({
+            "typ": "info",
+            "tekst": f"💪 Blisko celu! Pozostało tylko {postep['pozostalo']:.2f} zł do dziennego celu."
+        })
 
     return {
         "dystans_calkowity": f"{dystans_calkowity:.2f}",
@@ -100,7 +181,9 @@ def oblicz_oplacalnosc(dane):
         "stawka_godzinowa": f"{stawka_godzinowa:.2f}",
         "ocena": ocena,
         "ocena_klasa": ocena_klasa,
-        "srednia_dnia": f"{srednia_dnia:.2f}" if srednia_dnia else "Brak danych"
+        "srednia_dnia": f"{srednia_dnia:.2f}" if srednia_dnia else "Brak danych",
+        "postep": postep,
+        "powiadomienia": powiadomienia
     }
 
 @app.route('/')
@@ -116,6 +199,17 @@ def oblicz():
 @app.route('/statystyki')
 def statystyki():
     return render_template('statystyki.html')
+
+@app.route('/cele', methods=['GET', 'POST'])
+def cele():
+    if request.method == 'POST':
+        dane = request.json
+        zapisz_cele(dane)
+        return jsonify({"sukces": True})
+    else:
+        cele = wczytaj_cele()
+        postep = oblicz_postep_celu()
+        return jsonify({"cele": cele, "postep": postep})
 
 @app.route('/dane_statystyk')
 def dane_statystyk():

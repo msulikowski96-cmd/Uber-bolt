@@ -24,6 +24,25 @@
                         <i class="bi bi-graph-up"></i> Zobacz statystyki
                     </a>
                 </div>
+                
+                <!-- Cele dzienne -->
+                <div class="stats-section">
+                    <h5><i class="bi bi-bullseye"></i> Cel dzienny</h5>
+                    <h2 id="cel-dzienny" class="stat-value">300 zł</h2>
+                    <div class="progress mt-3" style="height: 20px; background-color: rgba(255,255,255,0.2);">
+                        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(90deg, var(--taxi-yellow), #f59e0b);"></div>
+                    </div>
+                    <p class="mt-2 mb-0" style="font-size: 0.9rem;">
+                        <span id="postep-kwota">0 zł</span> / <span id="cel-kwota">300 zł</span>
+                    </p>
+                    <p class="mt-1" style="font-size: 0.85rem; color: var(--taxi-yellow);">
+                        Pozostało: <span id="pozostalo-kwota">300 zł</span>
+                    </p>
+                    <button class="btn btn-sm btn-outline-light mt-2 w-100" onclick="pokazUstawieniaCelow()">
+                        <i class="bi bi-gear"></i> Ustaw cele
+                    </button>
+                </div>
+                
                 <div class="stats-section">
                     <h5><i class="bi bi-graph-up"></i> Dzisiejsza średnia</h5>
                     <h2 id="srednia-dnia" class="stat-value">--</h2>
@@ -161,7 +180,39 @@
                             <h5 class="alert-heading" id="ocena-text">--</h5>
                             <p class="mb-0">Wyniki zostały zapisane w pliku kursy.txt</p>
                         </div>
+                        
+                        <!-- Powiadomienia -->
+                        <div id="powiadomienia-container"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ustawień celów -->
+    <div class="modal fade" id="modalCelow" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title"><i class="bi bi-bullseye"></i> Ustawienia celów i powiadomień</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Cel dzienny (zł)</label>
+                        <input type="number" id="input-cel-dzienny" class="form-control" value="300">
+                        <small class="form-text" style="color: rgba(255,255,255,0.8);">Kwota, którą chcesz zarobić dziennie</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Minimalna stawka godzinowa (zł/h)</label>
+                        <input type="number" id="input-min-stawka" class="form-control" value="30">
+                        <small class="form-text" style="color: rgba(255,255,255,0.8);">Dostaniesz alert gdy stawka spadnie poniżej tej wartości</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" onclick="zapiszCele()">
+                        <i class="bi bi-check-circle"></i> Zapisz ustawienia
+                    </button>
                 </div>
             </div>
         </div>
