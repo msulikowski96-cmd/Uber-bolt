@@ -26,13 +26,14 @@ Preferred communication style: Simple, everyday language.
 
 **Rationale:** Chose MPA over SPA to keep the application simple and lightweight. Server-side rendering provides faster initial page loads, which is crucial for mobile users with potentially slower connections. Bootstrap provides a responsive, mobile-first framework out of the box.
 
-**PWA Implementation:** Progressive Web App features implemented via service worker (service-worker.js) using Workbox for caching strategies:
-- StaleWhileRevalidate for dynamic content
-- CacheFirst for images with 30-day expiration
-- Separate caches for fonts and static resources
+**PWA Implementation:** Progressive Web App features implemented via service worker (service-worker.js) using native Cache API for reliable offline functionality:
+- Precache essential files (CSS, JS, manifest, icon) on install
+- Runtime caching with cache-first strategy
+- Offline fallback to homepage for navigation requests
+- Separate caches: offline-v2 (precache) and runtime (dynamic)
 
-**Pros:** Fast offline access, installable on mobile devices, reduced server load through aggressive caching.
-**Cons:** Cache invalidation complexity, requires HTTPS in production.
+**Pros:** Fast offline access, installable on mobile devices, no external dependencies, reliable caching.
+**Cons:** Cache invalidation requires version updates, requires HTTPS in production.
 
 ### Backend Architecture
 
@@ -156,9 +157,9 @@ Preferred communication style: Simple, everyday language.
    - Purpose: UI icons
    - Used for: Navigation icons, status indicators
 
-5. **Workbox 5.1.2** - Service worker library (CDN)
-   - Purpose: PWA caching strategies
-   - Used for: Offline functionality, cache management
+5. **Native Cache API** - Browser caching API
+   - Purpose: PWA caching strategies and offline support
+   - Used for: Service worker implementation, offline functionality
 
 ### External Services
 
