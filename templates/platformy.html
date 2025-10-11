@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Porównanie Platform - Taxi Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 sidebar">
+                <div class="logo-section">
+                    <i class="bi bi-phone taxi-icon"></i>
+                    <h3 class="mt-3">Platformy</h3>
+                    <p class="text-muted">Porównanie aplikacji</p>
+                </div>
+                <div class="stats-section">
+                    <h5><i class="bi bi-trophy"></i> Najlepsza platforma</h5>
+                    <h2 id="najlepsza-platforma" class="stat-value">--</h2>
+                    <hr style="border-color: rgba(255,193,7,0.3)">
+                    <h5><i class="bi bi-speedometer"></i> Stawka</h5>
+                    <h3 id="najlepsza-stawka-platform" style="color: var(--taxi-yellow);">--</h3>
+                </div>
+                <div class="mt-4">
+                    <a href="/" class="btn btn-outline-light w-100 mb-2">
+                        <i class="bi bi-arrow-left"></i> Powrót do kalkulatora
+                    </a>
+                    <a href="/statystyki" class="btn btn-outline-light w-100">
+                        <i class="bi bi-graph-up"></i> Zobacz statystyki
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 main-content">
+                <div class="header-section">
+                    <h1><i class="bi bi-phone-fill"></i> Porównanie platform</h1>
+                    <p class="lead">Zobacz która aplikacja przynosi najlepsze zarobki</p>
+                </div>
+
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle"></i> 
+                    <strong>Wskazówka:</strong> Porównanie pokazuje średnią stawkę godzinową, sumę zysków i liczbę kursów dla każdej platformy.
+                </div>
+
+                <!-- Wykresy -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h4><i class="bi bi-bar-chart-fill"></i> Średnia stawka godzinowa według platform</h4>
+                        <div id="wykres-stawki"></div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h4><i class="bi bi-cash-stack"></i> Suma zysków według platform</h4>
+                        <div id="wykres-zyski"></div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h4><i class="bi bi-list-ol"></i> Liczba kursów według platform</h4>
+                        <div id="wykres-liczba"></div>
+                    </div>
+                </div>
+
+                <!-- Rekomendacje -->
+                <div class="card shadow-sm border-warning">
+                    <div class="card-body">
+                        <h4><i class="bi bi-lightbulb"></i> Rekomendacja</h4>
+                        <p class="lead mb-0">
+                            Na podstawie Twoich danych, najlepsze wyniki osiągasz na platformie: 
+                            <strong id="rekomendacja-platforma" class="text-warning">--</strong> 
+                            ze średnią stawką 
+                            <strong id="rekomendacja-stawka" class="text-success">--</strong> zł/h
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function loadPlatformy() {
+            try {
+                const response = await fetch('/statystyki_platform');
+                const dane = await response.json();
+                
+                if (dane.error) {
+                    alert('Brak danych do wyświetlenia. Dodaj najpierw kilka kursów z oznaczeniem platformy!');
+                    return;
+                }
+                
+                // Aktualizacja statystyk
+                document.getElementById('najlepsza-platforma').textContent = dane.najlepsza_platforma;
+                document.getElementById('najlepsza-stawka-platform').textContent = dane.najlepsza_stawka + ' zł/h';
+                document.getElementById('rekomendacja-platforma').textContent = dane.najlepsza_platforma;
+                document.getElementById('rekomendacja-stawka').textContent = dane.najlepsza_stawka;
+                
+                // Rysowanie wykresów
+                Plotly.newPlot('wykres-stawki', dane.wykres_stawki.data, dane.wykres_stawki.layout);
+                Plotly.newPlot('wykres-zyski', dane.wykres_zyski.data, dane.wykres_zyski.layout);
+                Plotly.newPlot('wykres-liczba', dane.wykres_liczba.data, dane.wykres_liczba.layout);
+                
+            } catch (error) {
+                console.error('Błąd:', error);
+                alert('Wystąpił błąd podczas ładowania danych platform!');
+            }
+        }
+        
+        window.addEventListener('load', loadPlatformy);
+    </script>
+</body>
+</html>

@@ -207,6 +207,10 @@ def oblicz():
 def statystyki():
     return render_template('statystyki.html')
 
+@app.route('/platformy')
+def platformy():
+    return render_template('platformy.html')
+
 @app.route('/cele', methods=['GET', 'POST'])
 def cele():
     if request.method == 'POST':
