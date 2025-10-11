@@ -163,23 +163,43 @@ body {
 
 .alert {
     border-radius: 15px;
-    border: none;
+    border: 4px solid;
+    padding: 20px;
 }
 
 .alert-success {
     background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    border-color: #10b981;
+    color: #065f46;
 }
 
 .alert-info {
-    background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+    background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+    border-color: #f59e0b;
+    color: #78350f;
 }
 
 .alert-warning {
-    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+    border-color: #ea580c;
+    color: #7c2d12;
 }
 
 .alert-danger {
-    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%);
+    border-color: #dc2626;
+    color: #7f1d1d;
+}
+
+.alert-heading {
+    font-weight: bold;
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+}
+
+.alert p {
+    margin-bottom: 0;
+    font-weight: 500;
 }
 
 @media (max-width: 768px) {
