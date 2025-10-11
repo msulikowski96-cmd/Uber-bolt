@@ -40,5 +40,50 @@ Stawka godzinowa: 111.99 zł/h
 Ocena: 💰 Kurs bardzo opłacalny!
 ----------------------------------------
 
-📊 Podsumowanie dnia 2025-10-11 - średnia stawka godzinowa: 80.49 zł/h
+========================================
+
+[2025-10-11 20:45:21]
+Dystans dojazdu (km): 0.00
+Czas dojazdu (min): 1
+Dystans z klientem (km): 0.00
+Czas kursu (min): 1
+Kwota (z napiwkiem): 0.00 zł
+Procent dla kierowcy: 100%
+Koszt paliwa: 0.00 zł
+Zysk netto: 0.00 zł
+Stawka godzinowa: 0.00 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+========================================
+
+[2025-10-11 20:45:21]
+Dystans dojazdu (km): 0.00
+Czas dojazdu (min): 1
+Dystans z klientem (km): 0.00
+Czas kursu (min): 1
+Kwota (z napiwkiem): 0.00 zł
+Procent dla kierowcy: 100%
+Koszt paliwa: 0.00 zł
+Zysk netto: 0.00 zł
+Stawka godzinowa: 0.00 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+========================================
+
+[2025-10-11 20:46:11]
+Dystans dojazdu (km): 15.00
+Czas dojazdu (min): 19
+Dystans z klientem (km): 23.00
+Czas kursu (min): 32
+Kwota (z napiwkiem): 100.00 zł
+Procent dla kierowcy: 100%
+Koszt paliwa: 4.81 zł
+Zysk netto: 95.19 zł
+Stawka godzinowa: 111.99 zł/h
+Ocena: 💰 Kurs bardzo opłacalny!
+----------------------------------------
+
+📊 Podsumowanie dnia 2025-10-11 - średnia stawka godzinowa: 58.91 zł/h
 ========================================
