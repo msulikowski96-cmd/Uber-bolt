@@ -160,5 +160,65 @@ Stawka godzinowa: 24.71 zł/h
 Ocena: 😐 Kurs średnio opłacalny.
 ----------------------------------------
 
-📊 Podsumowanie dnia 2025-10-11 - średnia stawka godzinowa: 40.29 zł/h
+========================================
+
+[2025-10-11 20:53:03]
+Dystans dojazdu (km): 0.00
+Czas dojazdu (min): 1
+Dystans z klientem (km): 0.00
+Czas kursu (min): 1
+Kwota (z napiwkiem): 0.00 zł
+Procent dla kierowcy: 100%
+Koszt paliwa: 0.00 zł
+Zysk netto: 0.00 zł
+Stawka godzinowa: 0.00 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+========================================
+
+[2025-10-11 20:53:03]
+Dystans dojazdu (km): 0.00
+Czas dojazdu (min): 1
+Dystans z klientem (km): 0.00
+Czas kursu (min): 1
+Kwota (z napiwkiem): 0.00 zł
+Procent dla kierowcy: 100%
+Koszt paliwa: 0.00 zł
+Zysk netto: 0.00 zł
+Stawka godzinowa: 0.00 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+========================================
+
+[2025-10-11 20:53:10]
+Dystans dojazdu (km): 0.00
+Czas dojazdu (min): 1
+Dystans z klientem (km): 0.00
+Czas kursu (min): 1
+Kwota (z napiwkiem): 0.00 zł
+Procent dla kierowcy: 100%
+Koszt paliwa: 0.00 zł
+Zysk netto: 0.00 zł
+Stawka godzinowa: 0.00 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+========================================
+
+[2025-10-11 20:53:10]
+Dystans dojazdu (km): 0.00
+Czas dojazdu (min): 1
+Dystans z klientem (km): 0.00
+Czas kursu (min): 1
+Kwota (z napiwkiem): 0.00 zł
+Procent dla kierowcy: 100%
+Koszt paliwa: 0.00 zł
+Zysk netto: 0.00 zł
+Stawka godzinowa: 0.00 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+📊 Podsumowanie dnia 2025-10-11 - średnia stawka godzinowa: 29.54 zł/h
 ========================================
