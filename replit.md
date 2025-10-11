@@ -2,7 +2,15 @@
 
 ## Overview
 
-Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers to track and analyze ride profitability. The application allows drivers to calculate hourly rates for rides, set daily earning goals, track progress, compare platform performance (Uber, Bolt, etc.), and view detailed statistics through interactive charts. Built with Flask and designed for mobile-first usage, it provides offline capabilities and can be installed on devices as a native-like app.
+Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers to track and analyze ride profitability. The application features multi-user authentication with email/password login, allowing each driver to have their own private data. Drivers can calculate hourly rates for rides, set daily earning goals, track progress, compare platform performance (Uber, Bolt, etc.), and view detailed statistics through interactive charts. Built with Flask and designed for mobile-first usage, it provides offline capabilities and can be installed on devices as a native-like app.
+
+## Recent Changes (October 2025)
+
+- **Added user authentication system** - Email/password login with secure password hashing
+- **Multi-user support** - Each user has separate data files (kursy.txt and cele.txt) stored in user_data/{user_id}/
+- **Platform comparison feature** - Track and compare profitability across different taxi platforms (Uber, Bolt, FreeNow, etc.)
+- **Database integration** - SQLite database for user management
+- **Enhanced security** - Flask-Login for session management, bcrypt for password hashing
 
 ## User Preferences
 
@@ -30,18 +38,25 @@ Preferred communication style: Simple, everyday language.
 
 **Framework:** Flask (Python) - Lightweight WSGI web application framework.
 
-**Architecture Pattern:** File-based data persistence with session management. No database layer - all data stored in plain text files.
+**Architecture Pattern:** Hybrid approach - SQLite database for user authentication and file-based storage for ride data. Flask-Login manages user sessions securely.
 
 **Key Components:**
-1. **app.py** - Main Flask application with route handlers for all pages and API endpoints
-2. **main.py** - Standalone CLI version (legacy, appears to be for console-based calculations)
-3. **File Storage:**
-   - `kursy.txt` - Stores ride records with timestamp, distance, time, earnings, and hourly rate
-   - `cele.txt` - Stores user goals (daily target, minimum acceptable rate)
+1. **app.py** - Main Flask application with route handlers, authentication, and API endpoints
+2. **database.py** - User model and database management (SQLite)
+3. **forms.py** - WTForms for login and registration validation
+4. **Database Storage (SQLite):**
+   - `taxi_calculator.db` - Stores user accounts (email, hashed passwords)
+5. **File Storage (per user):**
+   - `user_data/{user_id}/kursy.txt` - Stores ride records with timestamp, distance, time, earnings, hourly rate, and platform
+   - `user_data/{user_id}/cele.txt` - Stores user goals (daily target, minimum acceptable rate)
 
-**Rationale:** File-based storage chosen for simplicity and portability. No need for database setup - the application can run immediately without external dependencies. Session management via Flask's built-in session handling provides user-specific goal tracking without authentication complexity.
+**Authentication:**
+- **Flask-Login** - Session management and user authentication
+- **Flask-WTF** - Form validation with CSRF protection
+- **Bcrypt** - Secure password hashing (via werkzeug.security)
+- **Email validation** - Ensures valid email addresses during registration
 
-**Alternatives Considered:** SQLite or PostgreSQL would provide better querying capabilities and data integrity but add setup complexity for what is essentially a personal tracking tool.
+**Rationale:** Hybrid approach combines the best of both worlds - database for structured user data that requires querying (authentication) and file-based storage for sequential ride records that are simple to parse and backup. Each user has isolated data folders ensuring privacy and data separation.
 
 **Pros:** 
 - Zero setup overhead
