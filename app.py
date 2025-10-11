@@ -109,6 +109,7 @@ def oblicz_oplacalnosc(dane):
     procent_dla_kierowcy = float(dane['procent_dla_kierowcy'])
     spalanie = float(dane['spalanie'])
     cena_paliwa = float(dane['cena_paliwa'])
+    platforma = dane.get('platforma', 'Nieznana')
 
     dystans_calkowity = dystans_dojazdu + dystans_kursu
     czas_calkowity_h = (czas_dojazdu + czas_kursu) / 60
@@ -131,6 +132,7 @@ def oblicz_oplacalnosc(dane):
         ocena_klasa = "danger"
 
     dane_do_zapisu = {
+        "Platforma": platforma,
         "Dystans dojazdu (km)": f"{dystans_dojazdu:.2f}",
         "Czas dojazdu (min)": f"{czas_dojazdu:.0f}",
         "Dystans z klientem (km)": f"{dystans_kursu:.2f}",
@@ -362,6 +364,137 @@ def dane_statystyk():
             "liczba_kursow": len(kursy),
             "najlepsza_godzina": f"{najlepsza_godzina:02d}:00"
         }
+    })
+
+@app.route('/statystyki_platform')
+def statystyki_platform():
+    """Endpoint do porównania platform."""
+    import plotly.graph_objects as go
+    import plotly.utils
+    import json
+    from collections import defaultdict
+    
+    try:
+        with open(PLIK, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+    except FileNotFoundError:
+        return jsonify({"error": "Brak danych"})
+    
+    kursy = []
+    kurs = {}
+    
+    for linia in linie:
+        if linia.startswith("["):
+            if kurs:
+                kursy.append(kurs)
+            kurs = {"data": linia[1:20]}
+        elif "Platforma:" in linia:
+            kurs["platforma"] = linia.strip().split(":", 1)[1].strip()
+        elif "Stawka godzinowa:" in linia:
+            kurs["stawka"] = float(linia.strip().split(":")[1].replace("zł/h", "").strip())
+        elif "Zysk netto:" in linia:
+            kurs["zysk"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
+    
+    if kurs and "stawka" in kurs:
+        kursy.append(kurs)
+    
+    if not kursy:
+        return jsonify({"error": "Brak danych"})
+    
+    # Grupowanie według platform
+    dane_platform = defaultdict(lambda: {"stawki": [], "zyski": [], "liczba": 0})
+    
+    for kurs in kursy:
+        platforma = kurs.get("platforma", "Nieznana")
+        if "stawka" in kurs:
+            dane_platform[platforma]["stawki"].append(kurs["stawka"])
+        if "zysk" in kurs:
+            dane_platform[platforma]["zyski"].append(kurs["zysk"])
+        dane_platform[platforma]["liczba"] += 1
+    
+    # Obliczanie średnich
+    platformy = []
+    srednie_stawki = []
+    suma_zyskow_platform = []
+    liczba_kursow_platform = []
+    
+    for platforma, dane in dane_platform.items():
+        platformy.append(platforma)
+        srednia = sum(dane["stawki"]) / len(dane["stawki"]) if dane["stawki"] else 0
+        srednie_stawki.append(srednia)
+        suma_zyskow = sum(dane["zyski"])
+        suma_zyskow_platform.append(suma_zyskow)
+        liczba_kursow_platform.append(dane["liczba"])
+    
+    # Wykres porównania średnich stawek
+    fig_stawki = go.Figure()
+    fig_stawki.add_trace(go.Bar(
+        x=platformy,
+        y=srednie_stawki,
+        name='Średnia stawka',
+        marker=dict(color=srednie_stawki, colorscale='RdYlGn', showscale=True),
+        text=[f"{s:.2f} zł/h" for s in srednie_stawki],
+        textposition='auto'
+    ))
+    fig_stawki.update_layout(
+        title='Średnia stawka godzinowa według platform',
+        xaxis_title='Platforma',
+        yaxis_title='Średnia stawka (zł/h)',
+        template='plotly_white',
+        height=400
+    )
+    
+    # Wykres sumy zysków
+    fig_zyski = go.Figure()
+    fig_zyski.add_trace(go.Bar(
+        x=platformy,
+        y=suma_zyskow_platform,
+        name='Suma zysków',
+        marker=dict(color='#10b981'),
+        text=[f"{z:.2f} zł" for z in suma_zyskow_platform],
+        textposition='auto'
+    ))
+    fig_zyski.update_layout(
+        title='Suma zysków według platform',
+        xaxis_title='Platforma',
+        yaxis_title='Suma zysków (zł)',
+        template='plotly_white',
+        height=400
+    )
+    
+    # Wykres liczby kursów
+    fig_liczba = go.Figure()
+    fig_liczba.add_trace(go.Bar(
+        x=platformy,
+        y=liczba_kursow_platform,
+        name='Liczba kursów',
+        marker=dict(color='#667eea'),
+        text=liczba_kursow_platform,
+        textposition='auto'
+    ))
+    fig_liczba.update_layout(
+        title='Liczba kursów według platform',
+        xaxis_title='Platforma',
+        yaxis_title='Liczba kursów',
+        template='plotly_white',
+        height=400
+    )
+    
+    # Najlepsza platforma
+    if srednie_stawki:
+        idx_najlepsza = srednie_stawki.index(max(srednie_stawki))
+        najlepsza_platforma = platformy[idx_najlepsza]
+        najlepsza_stawka = srednie_stawki[idx_najlepsza]
+    else:
+        najlepsza_platforma = "Brak danych"
+        najlepsza_stawka = 0
+    
+    return jsonify({
+        "wykres_stawki": json.loads(json.dumps(fig_stawki, cls=plotly.utils.PlotlyJSONEncoder)),
+        "wykres_zyski": json.loads(json.dumps(fig_zyski, cls=plotly.utils.PlotlyJSONEncoder)),
+        "wykres_liczba": json.loads(json.dumps(fig_liczba, cls=plotly.utils.PlotlyJSONEncoder)),
+        "najlepsza_platforma": najlepsza_platforma,
+        "najlepsza_stawka": f"{najlepsza_stawka:.2f}"
     })
 
 if __name__ == '__main__':
