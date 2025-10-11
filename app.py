@@ -190,6 +190,11 @@ def oblicz_oplacalnosc(dane):
 def index():
     return render_template('index.html')
 
+@app.route('/static/service-worker.js')
+def service_worker():
+    from flask import send_from_directory
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
+
 @app.route('/oblicz', methods=['POST'])
 def oblicz():
     dane = request.json

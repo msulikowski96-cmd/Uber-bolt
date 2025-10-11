@@ -137,8 +137,85 @@ document.getElementById('kalkulator-form').addEventListener('submit', async func
     }
 });
 
+// PWA Installation
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Pokaż banner instalacji jeśli użytkownik nie odrzucił go wcześniej
+    if (!localStorage.getItem('pwa-banner-dismissed')) {
+        document.getElementById('install-banner').style.display = 'block';
+    }
+});
+
+function zainstalujPWA() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('Użytkownik zainstalował PWA');
+            }
+            deferredPrompt = null;
+            document.getElementById('install-banner').style.display = 'none';
+        });
+    }
+}
+
+function zamknijBanner() {
+    document.getElementById('install-banner').style.display = 'none';
+    localStorage.setItem('pwa-banner-dismissed', 'true');
+}
+
+// Tryb ciemny
+function przełączTryb() {
+    const body = document.body;
+    const icon = document.getElementById('theme-icon');
+    const text = document.getElementById('theme-text');
+    
+    body.classList.toggle('dark-mode');
+    
+    if (body.classList.contains('dark-mode')) {
+        icon.className = 'bi bi-sun';
+        text.textContent = 'Tryb jasny';
+        localStorage.setItem('theme', 'dark');
+    } else {
+        icon.className = 'bi bi-moon-stars';
+        text.textContent = 'Tryb ciemny';
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// Wczytanie preferencji motywu
+function wczytajMotyw() {
+    const savedTheme = localStorage.getItem('theme');
+    const icon = document.getElementById('theme-icon');
+    const text = document.getElementById('theme-text');
+    
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (icon) icon.className = 'bi bi-sun';
+        if (text) text.textContent = 'Tryb jasny';
+    }
+}
+
+// Rejestracja Service Workera
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/service-worker.js')
+        .then(registration => {
+            console.log('Service Worker zarejestrowany:', registration);
+        })
+        .catch(error => {
+            console.log('Błąd rejestracji Service Workera:', error);
+        });
+}
+
 // Wczytanie danych przy starcie
 window.addEventListener('load', async function() {
+    // Wczytaj motyw
+    wczytajMotyw();
+    
     // Wczytaj cele
     await wczytajCele();
     

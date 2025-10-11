@@ -13,6 +13,86 @@ body {
     min-height: 100vh;
     margin: 0;
     padding: 0;
+    transition: all 0.3s ease;
+}
+
+/* Tryb ciemny */
+body.dark-mode {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+body.dark-mode .main-content {
+    background: rgba(30, 30, 30, 0.95);
+    color: #e0e0e0;
+}
+
+body.dark-mode .card {
+    background: #2a2a2a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .form-control {
+    background: #3a3a3a;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+body.dark-mode .form-label {
+    color: #b0b0b0;
+}
+
+body.dark-mode .section-title {
+    color: #667eea;
+}
+
+body.dark-mode .header-section h1,
+body.dark-mode .header-section p {
+    color: #e0e0e0;
+}
+
+body.dark-mode .result-box {
+    background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+}
+
+body.dark-mode .result-box h5,
+body.dark-mode .result-box p {
+    color: #e0e0e0;
+}
+
+body.dark-mode .stat-card {
+    background: #2a2a2a;
+    color: #e0e0e0;
+}
+
+/* Banner instalacji PWA */
+.install-banner {
+    background: linear-gradient(135deg, var(--taxi-yellow) 0%, #f59e0b 100%);
+    color: #1e1e1e;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    text-align: center;
+    animation: slideIn 0.5s ease;
+}
+
+.install-banner p {
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.install-banner button {
+    margin: 5px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .sidebar {
