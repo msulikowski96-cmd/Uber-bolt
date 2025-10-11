@@ -1,18 +1,20 @@
 
-[2025-10-11 20:31:26]
-Dystans dojazdu (km): 3.90
-Czas dojazdu (min): 7
-Dystans z klientem (km): 10.90
-Czas kursu (min): 20
-Kwota (z napiwkiem): 31.00 zł
+[2025-10-11 20:58:39]
+Dystans dojazdu (km): 15.00
+Czas dojazdu (min): 19
+Dystans z klientem (km): 23.00
+Czas kursu (min): 32
+Kwota (z napiwkiem): 100.00 zł
 Procent dla kierowcy: 100%
-Koszt paliwa: 1.87 zł
-Zysk netto: 29.13 zł
-Stawka godzinowa: 64.73 zł/h
+Koszt paliwa: 4.81 zł
+Zysk netto: 95.19 zł
+Stawka godzinowa: 111.99 zł/h
 Ocena: 💰 Kurs bardzo opłacalny!
 ----------------------------------------
 
-[2025-10-11 20:38:51]
+========================================
+
+[2025-10-11 20:59:18]
 Dystans dojazdu (km): 3.80
 Czas dojazdu (min): 7
 Dystans z klientem (km): 10.90
@@ -27,258 +29,33 @@ Ocena: 💰 Kurs bardzo opłacalny!
 
 ========================================
 
-[2025-10-11 20:40:41]
-Dystans dojazdu (km): 15.00
-Czas dojazdu (min): 19
-Dystans z klientem (km): 23.00
-Czas kursu (min): 32
-Kwota (z napiwkiem): 100.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 4.81 zł
-Zysk netto: 95.19 zł
-Stawka godzinowa: 111.99 zł/h
-Ocena: 💰 Kurs bardzo opłacalny!
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:45:21]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:45:21]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:46:11]
-Dystans dojazdu (km): 15.00
-Czas dojazdu (min): 19
-Dystans z klientem (km): 23.00
-Czas kursu (min): 32
-Kwota (z napiwkiem): 100.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 4.81 zł
-Zysk netto: 95.19 zł
-Stawka godzinowa: 111.99 zł/h
-Ocena: 💰 Kurs bardzo opłacalny!
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:47:19]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:47:19]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:47:54]
+[2025-10-11 20:59:47]
 Dystans dojazdu (km): 3.90
-Czas dojazdu (min): 7
-Dystans z klientem (km): 10.00
-Czas kursu (min): 20
-Kwota (z napiwkiem): 31.00 zł
+Czas dojazdu (min): 8
+Dystans z klientem (km): 10.30
+Czas kursu (min): 13
+Kwota (z napiwkiem): 35.00 zł
 Procent dla kierowcy: 100%
-Koszt paliwa: 1.76 zł
-Zysk netto: 29.24 zł
-Stawka godzinowa: 64.98 zł/h
+Koszt paliwa: 1.80 zł
+Zysk netto: 33.20 zł
+Stawka godzinowa: 94.87 zł/h
 Ocena: 💰 Kurs bardzo opłacalny!
 ----------------------------------------
 
 ========================================
 
-[2025-10-11 20:49:25]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:49:46]
-Dystans dojazdu (km): 8.00
-Czas dojazdu (min): 15
-Dystans z klientem (km): 5.00
-Czas kursu (min): 15
+[2025-10-11 21:02:15]
+Dystans dojazdu (km): 5.60
+Czas dojazdu (min): 10
+Dystans z klientem (km): 8.00
+Czas kursu (min): 23
 Kwota (z napiwkiem): 14.00 zł
 Procent dla kierowcy: 100%
-Koszt paliwa: 1.64 zł
-Zysk netto: 12.36 zł
-Stawka godzinowa: 24.71 zł/h
+Koszt paliwa: 1.72 zł
+Zysk netto: 12.28 zł
+Stawka godzinowa: 22.33 zł/h
 Ocena: 😐 Kurs średnio opłacalny.
 ----------------------------------------
 
-========================================
-
-[2025-10-11 20:53:03]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:53:03]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:53:10]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:53:10]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:55:48]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:55:48]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:56:55]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-========================================
-
-[2025-10-11 20:56:55]
-Dystans dojazdu (km): 0.00
-Czas dojazdu (min): 1
-Dystans z klientem (km): 0.00
-Czas kursu (min): 1
-Kwota (z napiwkiem): 0.00 zł
-Procent dla kierowcy: 100%
-Koszt paliwa: 0.00 zł
-Zysk netto: 0.00 zł
-Stawka godzinowa: 0.00 zł/h
-Ocena: ❌ Kurs nieopłacalny.
-----------------------------------------
-
-📊 Podsumowanie dnia 2025-10-11 - średnia stawka godzinowa: 23.32 zł/h
+📊 Podsumowanie dnia 2025-10-11 - średnia stawka godzinowa: 73.49 zł/h
 ========================================
