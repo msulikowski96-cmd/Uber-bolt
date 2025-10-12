@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Logowanie - Taxi Calculator</title>
+    <title>🚕 Logowanie - Taxi Calculator</title>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='../generated-icon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,19 +18,138 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            position: relative;
+            overflow: hidden;
         }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
         .login-card {
-            max-width: 400px;
+            max-width: 450px;
             width: 100%;
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.6s ease;
+            border: 1px solid rgba(255,255,255,0.3);
         }
+        
         .logo-icon {
-            font-size: 4rem;
-            color: #667eea;
+            font-size: 5rem;
+            background: linear-gradient(135deg, #FFC107, #FFD54F);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             text-align: center;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 10px 20px rgba(255, 193, 7, 0.3));
+        }
+        
+        .login-card h2 {
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-bottom: 30px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-label i {
+            font-size: 1.1rem;
+        }
+        
+        .form-control {
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            padding: 12px 18px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 14px 40px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary i {
+            margin-right: 8px;
+        }
+        
+        .register-link {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .register-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        
+        .alert {
+            border-radius: 15px;
+            border: none;
+            padding: 15px 20px;
             margin-bottom: 20px;
         }
     </style>
@@ -38,15 +157,15 @@
 <body>
     <div class="login-card">
         <div class="logo-icon">
-            <i class="bi bi-taxi-front"></i>
+            <i class="bi bi-taxi-front-fill"></i>
         </div>
-        <h2 class="text-center mb-4">Logowanie</h2>
+        <h2 class="text-center">Logowanie</h2>
         
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
+                        <i class="bi bi-{{ 'exclamation-circle-fill' if category == 'error' else 'info-circle-fill' }}"></i> {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 {% endfor %}
@@ -57,28 +176,34 @@
             {{ form.hidden_tag() }}
             
             <div class="mb-3">
-                {{ form.email.label(class="form-label") }}
-                {{ form.email(class="form-control", autocomplete="email") }}
+                <label class="form-label"><i class="bi bi-envelope-fill"></i> {{ form.email.label.text }}</label>
+                {{ form.email(class="form-control", autocomplete="email", placeholder="twoj@email.pl") }}
                 {% if form.email.errors %}
-                    <div class="text-danger">{{ form.email.errors[0] }}</div>
+                    <div class="text-danger mt-1">
+                        <i class="bi bi-exclamation-triangle-fill"></i> {{ form.email.errors[0] }}
+                    </div>
                 {% endif %}
             </div>
             
-            <div class="mb-3">
-                {{ form.password.label(class="form-label") }}
-                {{ form.password(class="form-control", autocomplete="current-password") }}
+            <div class="mb-4">
+                <label class="form-label"><i class="bi bi-lock-fill"></i> {{ form.password.label.text }}</label>
+                {{ form.password(class="form-control", autocomplete="current-password", placeholder="••••••••") }}
                 {% if form.password.errors %}
-                    <div class="text-danger">{{ form.password.errors[0] }}</div>
+                    <div class="text-danger mt-1">
+                        <i class="bi bi-exclamation-triangle-fill"></i> {{ form.password.errors[0] }}
+                    </div>
                 {% endif %}
             </div>
             
             <div class="d-grid gap-2 mb-3">
-                {{ form.submit(class="btn btn-primary btn-lg") }}
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right"></i> {{ form.submit.label.text }}
+                </button>
             </div>
         </form>
         
         <div class="text-center">
-            <p>Nie masz konta? <a href="{{ url_for('register') }}">Zarejestruj się</a></p>
+            <p class="mb-0">Nie masz konta? <a href="{{ url_for('register') }}" class="register-link"><i class="bi bi-person-plus-fill"></i> Zarejestruj się</a></p>
         </div>
     </div>
     

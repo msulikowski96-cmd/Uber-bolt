@@ -93,27 +93,27 @@
                             <div class="row">
                                 <!-- Dojazd -->
                                 <div class="col-md-6 mb-4">
-                                    <h5 class="section-title"><i class="bi bi-geo-alt"></i> Dojazd do klienta</h5>
+                                    <h5 class="section-title"><i class="bi bi-geo-alt-fill"></i> Dojazd do klienta</h5>
                                     <div class="mb-3">
-                                        <label class="form-label">Dystans dojazdu (km)</label>
-                                        <input type="number" step="0.1" class="form-control" name="dystans_dojazdu" required>
+                                        <label class="form-label"><i class="bi bi-signpost-2"></i> Dystans dojazdu (km)</label>
+                                        <input type="number" step="0.1" class="form-control" name="dystans_dojazdu" required placeholder="np. 5.2">
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Czas dojazdu (min)</label>
-                                        <input type="number" step="1" class="form-control" name="czas_dojazdu" required>
+                                        <label class="form-label"><i class="bi bi-stopwatch"></i> Czas dojazdu (min)</label>
+                                        <input type="number" step="1" class="form-control" name="czas_dojazdu" required placeholder="np. 15">
                                     </div>
                                 </div>
 
                                 <!-- Kurs -->
                                 <div class="col-md-6 mb-4">
-                                    <h5 class="section-title"><i class="bi bi-person"></i> Kurs z klientem</h5>
+                                    <h5 class="section-title"><i class="bi bi-person-check-fill"></i> Kurs z klientem</h5>
                                     <div class="mb-3">
-                                        <label class="form-label">Dystans z klientem (km)</label>
-                                        <input type="number" step="0.1" class="form-control" name="dystans_kursu" required>
+                                        <label class="form-label"><i class="bi bi-map"></i> Dystans z klientem (km)</label>
+                                        <input type="number" step="0.1" class="form-control" name="dystans_kursu" required placeholder="np. 12.5">
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Czas kursu (min)</label>
-                                        <input type="number" step="1" class="form-control" name="czas_kursu" required>
+                                        <label class="form-label"><i class="bi bi-clock-history"></i> Czas kursu (min)</label>
+                                        <input type="number" step="1" class="form-control" name="czas_kursu" required placeholder="np. 25">
                                     </div>
                                 </div>
 
@@ -121,38 +121,38 @@
                                 <div class="col-md-6 mb-4">
                                     <h5 class="section-title"><i class="bi bi-cash-coin"></i> Finanse</h5>
                                     <div class="mb-3">
-                                        <label class="form-label">Kwota za kurs (zł)</label>
-                                        <input type="number" step="0.01" class="form-control" name="kwota" required>
-                                        <div class="form-text">Cena kursu + ewentualny napiwek (bez napiwku wpisz samą cenę kursu)</div>
+                                        <label class="form-label"><i class="bi bi-currency-exchange"></i> Kwota za kurs (zł)</label>
+                                        <input type="number" step="0.01" class="form-control" name="kwota" required placeholder="np. 45.50">
+                                        <div class="form-text"><i class="bi bi-info-circle"></i> Cena kursu + ewentualny napiwek</div>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Procent dla kierowcy (%)</label>
-                                        <input type="number" step="1" class="form-control" name="procent_dla_kierowcy" value="60" required>
+                                        <label class="form-label"><i class="bi bi-percent"></i> Procent dla kierowcy (%)</label>
+                                        <input type="number" step="1" class="form-control" name="procent_dla_kierowcy" value="60" required placeholder="np. 60">
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label"><i class="bi bi-phone"></i> Platforma</label>
+                                        <label class="form-label"><i class="bi bi-phone-fill"></i> Platforma</label>
                                         <select class="form-select" name="platforma" required>
                                             <option value="">Wybierz platformę</option>
-                                            <option value="Uber">Uber</option>
-                                            <option value="Bolt">Bolt</option>
-                                            <option value="FreeNow">FreeNow (mytaxi)</option>
-                                            <option value="iTaxi">iTaxi</option>
-                                            <option value="Prywatny">Kurs prywatny</option>
-                                            <option value="Inne">Inne</option>
+                                            <option value="Uber">🚗 Uber</option>
+                                            <option value="Bolt">⚡ Bolt</option>
+                                            <option value="FreeNow">🟡 FreeNow (mytaxi)</option>
+                                            <option value="iTaxi">🚕 iTaxi</option>
+                                            <option value="Prywatny">👤 Kurs prywatny</option>
+                                            <option value="Inne">📱 Inne</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <!-- Paliwo -->
                                 <div class="col-md-6 mb-4">
-                                    <h5 class="section-title"><i class="bi bi-fuel-pump"></i> Paliwo</h5>
+                                    <h5 class="section-title"><i class="bi bi-fuel-pump-fill"></i> Paliwo</h5>
                                     <div class="mb-3">
-                                        <label class="form-label">Spalanie (l/100km)</label>
-                                        <input type="number" step="0.1" class="form-control" name="spalanie" value="5.0" required>
+                                        <label class="form-label"><i class="bi bi-droplet-half"></i> Spalanie (l/100km)</label>
+                                        <input type="number" step="0.1" class="form-control" name="spalanie" value="5.0" required placeholder="np. 5.0">
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Cena paliwa (zł/l)</label>
-                                        <input type="number" step="0.01" class="form-control" name="cena_paliwa" value="6.50" required>
+                                        <label class="form-label"><i class="bi bi-tag-fill"></i> Cena paliwa (zł/l)</label>
+                                        <input type="number" step="0.01" class="form-control" name="cena_paliwa" value="6.50" required placeholder="np. 6.50">
                                     </div>
                                 </div>
                             </div>
