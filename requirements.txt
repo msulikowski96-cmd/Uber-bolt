@@ -5,3 +5,11 @@ email-validator
 flask-bcrypt
 flask-login
 flask-wtf
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+werkzeug
+wtforms
+flask-login

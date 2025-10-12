@@ -1,11 +1,20 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from werkzeug.middleware.proxy_fix import ProxyFix
 import datetime
-from database import init_db, User, get_user_folder
+import os
+from database import db, User, get_user_folder, init_db
 from forms import LoginForm, RegistrationForm
 
 app = Flask(__name__)
-app.secret_key = 'taxi-calculator-secret-key-2025-auth'
+app.secret_key = os.environ.get("SESSION_SECRET", "taxi-calculator-secret-key-2025-auth")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
 
 # Konfiguracja Flask-Login
 login_manager = LoginManager()
@@ -15,7 +24,7 @@ login_manager.login_message = 'Zaloguj się, aby uzyskać dostęp do tej strony.
 login_manager.login_message_category = 'info'
 
 # Inicjalizacja bazy danych
-init_db()
+init_db(app)
 
 @login_manager.user_loader
 def load_user(user_id):

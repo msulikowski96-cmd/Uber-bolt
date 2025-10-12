@@ -1,64 +1,31 @@
-import sqlite3
+import os
+from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-import os
+from sqlalchemy.orm import DeclarativeBase
 
-DATABASE = 'taxi_calculator.db'
+class Base(DeclarativeBase):
+    pass
 
-def get_db():
-    """Tworzy połączenie z bazą danych"""
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+db = SQLAlchemy(model_class=Base)
 
-def init_db():
-    """Inicjalizuje bazę danych"""
-    conn = get_db()
-    cursor = conn.cursor()
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
     
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    conn.commit()
-    conn.close()
-
-class User(UserMixin):
-    """Model użytkownika"""
-    def __init__(self, id, email):
-        self.id = id
-        self.email = email
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
     
     @staticmethod
     def get_by_id(user_id):
         """Pobiera użytkownika po ID"""
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, email FROM users WHERE id = ?', (user_id,))
-        row = cursor.fetchone()
-        conn.close()
-        
-        if row:
-            return User(row['id'], row['email'])
-        return None
+        return User.query.get(int(user_id))
     
     @staticmethod
     def get_by_email(email):
         """Pobiera użytkownika po email"""
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, email FROM users WHERE email = ?', (email,))
-        row = cursor.fetchone()
-        conn.close()
-        
-        if row:
-            return User(row['id'], row['email'])
-        return None
+        return User.query.filter_by(email=email).first()
     
     @staticmethod
     def create(email, password):
@@ -66,42 +33,40 @@ class User(UserMixin):
         password_hash = generate_password_hash(password)
         
         try:
-            conn = get_db()
-            cursor = conn.cursor()
-            cursor.execute('INSERT INTO users (email, password_hash) VALUES (?, ?)',
-                         (email, password_hash))
-            user_id = cursor.lastrowid
-            conn.commit()
-            conn.close()
+            user = User(email=email, password_hash=password_hash)
+            db.session.add(user)
+            db.session.commit()
             
-            # Tworzenie folderów dla użytkownika
-            user_folder = f'user_data/{user_id}'
+            user_folder = f'user_data/{user.id}'
             os.makedirs(user_folder, exist_ok=True)
             
-            # Tworzenie początkowych plików
             with open(f'{user_folder}/kursy.txt', 'w', encoding='utf-8') as f:
                 f.write('')
             
             with open(f'{user_folder}/cele.txt', 'w', encoding='utf-8') as f:
                 f.write('cel_dzienny:300\nmin_stawka:30\n')
             
-            return User(user_id, email)
-        except sqlite3.IntegrityError:
+            return user
+        except Exception:
+            db.session.rollback()
             return None
     
     @staticmethod
     def verify_password(email, password):
         """Weryfikuje hasło użytkownika"""
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, email, password_hash FROM users WHERE email = ?', (email,))
-        row = cursor.fetchone()
-        conn.close()
+        user = User.query.filter_by(email=email).first()
         
-        if row and check_password_hash(row['password_hash'], password):
-            return User(row['id'], row['email'])
+        if user and check_password_hash(user.password_hash, password):
+            return user
         return None
 
 def get_user_folder(user_id):
     """Zwraca ścieżkę folderu użytkownika"""
     return f'user_data/{user_id}'
+
+def init_db(app):
+    """Inicjalizuje bazę danych"""
+    db.init_app(app)
+    
+    with app.app_context():
+        db.create_all()
