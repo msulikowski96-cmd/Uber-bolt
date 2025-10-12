@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -43,19 +44,25 @@
             <div class="card-body">
                 <h5 class="card-title">Wybierz okres raportu</h5>
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <select class="form-select" id="okresTyp">
                             <option value="tydzien">Tydzień</option>
                             <option value="miesiac" selected>Miesiąc</option>
                             <option value="kwartal">Kwartał</option>
+                            <option value="rok">Rok</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="month" class="form-control" id="okresData" value="">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <button class="btn btn-primary w-100" onclick="generujRaport()">
                             <i class="bi bi-file-earmark-text"></i> Generuj Raport
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-success w-100" onclick="eksportujRaport()">
+                            <i class="bi bi-download"></i> Eksportuj PDF
                         </button>
                     </div>
                 </div>
@@ -98,6 +105,147 @@
             </div>
         </div>
 
+        <!-- Rozbudowany kalkulator podatków -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-receipt-cutoff"></i> Zaawansowany Kalkulator Podatkowy</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Forma opodatkowania</label>
+                            <select class="form-select" id="formaPodatkowa" onchange="obliczPodatki()">
+                                <option value="ryczalt">Ryczałt 8.5% (transport osobowy)</option>
+                                <option value="ryczalt_12">Ryczałt 12.5% (inne usługi)</option>
+                                <option value="liniowy">Podatek liniowy 19%</option>
+                                <option value="skala">Skala podatkowa (17%/32%)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Przychody miesięczne (brutto)</label>
+                            <input type="number" class="form-control" id="przychodBrutto" value="0" oninput="obliczPodatki()">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Typ kosztów uzyskania przychodu</label>
+                            <select class="form-select" id="typKosztow" onchange="obliczPodatki()">
+                                <option value="20">20% przychodów (max 120k rocznie)</option>
+                                <option value="50">50% przychodów (ewidencja przebiegu)</option>
+                                <option value="rzeczywiste">Koszty rzeczywiste</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="kosztRzeczywiste" style="display:none;">
+                            <label class="form-label">Koszty rzeczywiste (paliwo, naprawy, etc.)</label>
+                            <input type="number" class="form-control" id="kosztyRzeczywiste" value="0" oninput="obliczPodatki()">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dodatkowe koszty (abonament, myjnia, etc.)</label>
+                            <input type="number" class="form-control" id="dodatkoweKoszty" value="0" oninput="obliczPodatki()">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Czy masz ulgę na start? (6 msc bez ZUS)</label>
+                            <select class="form-select" id="ulgaNaStart" onchange="obliczPodatki()">
+                                <option value="nie">Nie</option>
+                                <option value="tak">Tak</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-success">
+                            <h6><i class="bi bi-calculator"></i> Szczegółowe wyliczenie:</h6>
+                            <table class="table table-sm mb-0">
+                                <tr>
+                                    <td>Przychód:</td>
+                                    <td class="text-end"><strong id="podPrzychod">0 zł</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Koszty uzyskania:</td>
+                                    <td class="text-end"><strong id="podKoszty">0 zł</strong></td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td>Dochód:</td>
+                                    <td class="text-end"><strong id="podDochod">0 zł</strong></td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td>Podatek dochodowy:</td>
+                                    <td class="text-end"><strong id="podPIT">0 zł</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Składka zdrowotna (9%):</td>
+                                    <td class="text-end"><strong id="podZdrowotna">0 zł</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>ZUS (składki społeczne):</td>
+                                    <td class="text-end"><strong id="podZUS">0 zł</strong></td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td colspan="2"><strong>Składki ZUS szczegółowo:</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3">- Emerytalna:</td>
+                                    <td class="text-end" id="zusEmerytalna">0 zł</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3">- Rentowa:</td>
+                                    <td class="text-end" id="zusRentowa">0 zł</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3">- Chorobowa (dobrowolna):</td>
+                                    <td class="text-end" id="zusChorobowa">0 zł</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-3">- Wypadkowa:</td>
+                                    <td class="text-end" id="zusWypadkowa">0 zł</td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td><strong>SUMA OBCIĄŻEŃ:</strong></td>
+                                    <td class="text-end"><strong id="sumaObciazen">0 zł</strong></td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td><strong>DO WYPŁATY:</strong></td>
+                                    <td class="text-end"><strong class="text-success" id="podNetto">0 zł</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="bi bi-info-circle"></i> <strong>Wyliczenia na rok 2025</strong><br>
+                                - Minimalna podstawa ZUS: 4694,40 zł<br>
+                                - Ulga na start: brak ZUS przez 6 msc (max do 30 roku życia)<br>
+                                - Preferencyjny ZUS: 30% podstawy przez 24 msc<br>
+                                <span id="efektywnaSkladka"></span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prognoza roczna -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calendar-check"></i> Prognoza Roczna</h5>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="prognozaRocznaWykres"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-primary">
+                            <h6>Przewidywane roczne:</h6>
+                            <ul class="mb-0">
+                                <li>Przychód: <strong id="progPrzychod">0 zł</strong></li>
+                                <li>Koszty: <strong id="progKoszty">0 zł</strong></li>
+                                <li>Podatek: <strong id="progPodatek">0 zł</strong></li>
+                                <li>ZUS: <strong id="progZUS">0 zł</strong></li>
+                                <li class="border-top pt-2 mt-2">Netto: <strong id="progNetto">0 zł</strong></li>
+                            </ul>
+                        </div>
+                        <div class="alert alert-warning">
+                            <small><i class="bi bi-exclamation-triangle"></i> Prognozy oparte na średnich z ostatnich 3 miesięcy</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Prognoza zarobków -->
         <div class="card mb-4">
             <div class="card-body">
@@ -124,18 +272,18 @@
         <!-- Licznik kilometrów -->
         <div class="card mb-4">
             <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-speedometer2"></i> Licznik Kilometrów</h5>
+                <h5 class="card-title"><i class="bi bi-speedometer2"></i> Licznik Kilometrów i Kosztów Eksploatacji</h5>
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h6 class="text-muted">Całkowity przebieg</h6>
                                 <h2 id="calkowitePrzejechane">0 km</h2>
-                                <small class="text-muted">Od początku użytkowania</small>
+                                <small class="text-muted">Od początku</small>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h6 class="text-muted">W tym miesiącu</h6>
@@ -144,7 +292,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <h6 class="text-muted">Koszt paliwa/km</h6>
@@ -153,58 +301,14 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Kalkulator podatków -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-receipt"></i> Kalkulator Podatków</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Forma opodatkowania</label>
-                            <select class="form-select" id="formaPodatkowa" onchange="obliczPodatki()">
-                                <option value="ryczalt">Ryczałt 8.5%</option>
-                                <option value="liniowy">Podatek liniowy 19%</option>
-                                <option value="skala">Skala podatkowa (17%/32%)</option>
-                            </select>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Koszty całkowite</h6>
+                                <h2 id="kosztyEksploatacji">0 zł</h2>
+                                <small class="text-muted">Ten miesiąc</small>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Przychody (brutto)</label>
-                            <input type="number" class="form-control" id="przychodBrutto" value="0" oninput="obliczPodatki()">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Koszty uzyskania przychodu</label>
-                            <input type="number" class="form-control" id="kosztyPrzychodu" value="0" oninput="obliczPodatki()">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="alert alert-success">
-                            <h6><i class="bi bi-calculator"></i> Szacunkowe podatki:</h6>
-                            <table class="table table-sm mb-0">
-                                <tr>
-                                    <td>Dochód:</td>
-                                    <td class="text-end"><strong id="podDochod">0 zł</strong></td>
-                                </tr>
-                                <tr>
-                                    <td>Podatek dochodowy:</td>
-                                    <td class="text-end"><strong id="podPIT">0 zł</strong></td>
-                                </tr>
-                                <tr>
-                                    <td>ZUS (szacunkowo):</td>
-                                    <td class="text-end"><strong id="podZUS">0 zł</strong></td>
-                                </tr>
-                                <tr class="border-top">
-                                    <td><strong>Do wypłaty:</strong></td>
-                                    <td class="text-end"><strong id="podNetto">0 zł</strong></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <small class="text-muted">
-                            <i class="bi bi-info-circle"></i> To są szacunkowe wartości. Skonsultuj się z księgowym.
-                        </small>
                     </div>
                 </div>
             </div>
@@ -228,6 +332,10 @@
                         <div class="mb-2">
                             <label class="form-label">Prowizje platform</label>
                             <input type="number" class="form-control" id="budProwizje" value="0" oninput="obliczBudzet()">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Przeglądy i naprawy (szacunkowo)</label>
+                            <input type="number" class="form-control" id="budNaprawy" value="0" oninput="obliczBudzet()">
                         </div>
                         <div class="mb-2">
                             <label class="form-label">Inne koszty</label>
@@ -283,6 +391,15 @@
         const dzisiaj = new Date();
         document.getElementById('okresData').value = dzisiaj.toISOString().slice(0, 7);
 
+        // Pokaż/ukryj koszty rzeczywiste
+        document.getElementById('typKosztow').addEventListener('change', function() {
+            if (this.value === 'rzeczywiste') {
+                document.getElementById('kosztRzeczywiste').style.display = 'block';
+            } else {
+                document.getElementById('kosztRzeczywiste').style.display = 'none';
+            }
+        });
+
         async function generujRaport() {
             const typ = document.getElementById('okresTyp').value;
             const data = document.getElementById('okresData').value;
@@ -294,6 +411,10 @@
             document.getElementById('zarobkiNetto').textContent = dane.zarobki_netto + ' zł';
             document.getElementById('liczbaKursow').textContent = dane.liczba_kursow;
             document.getElementById('przejechaneKm').textContent = dane.przejechane_km + ' km';
+            
+            // Ustaw przychód w kalkulatorze
+            document.getElementById('przychodBrutto').value = dane.zarobki_brutto;
+            obliczPodatki();
         }
 
         async function ladujPrognoze() {
@@ -306,6 +427,28 @@
             document.getElementById('trendInfo').textContent = dane.trend;
             
             Plotly.newPlot('prognozaWykres', dane.wykres_data, dane.wykres_layout);
+            
+            // Prognoza roczna
+            const prognozaMiesieczna = parseFloat(dane.prognoza_miesiac) || 0;
+            const progRocznyPrzychod = prognozaMiesieczna * 12;
+            
+            document.getElementById('progPrzychod').textContent = progRocznyPrzychod.toFixed(2) + ' zł';
+            
+            // Wykres prognozy rocznej
+            const miesiace = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru'];
+            const wykresRoczny = [{
+                x: miesiace,
+                y: Array(12).fill(prognozaMiesieczna),
+                type: 'bar',
+                marker: {color: '#667eea'}
+            }];
+            
+            Plotly.newPlot('prognozaRocznaWykres', wykresRoczny, {
+                title: 'Prognoza miesięczna na cały rok',
+                xaxis: {title: 'Miesiąc'},
+                yaxis: {title: 'Przychód (zł)'},
+                height: 300
+            });
         }
 
         async function ladujKilometry() {
@@ -316,57 +459,124 @@
             document.getElementById('przebiegMiesiac').textContent = dane.miesiac + ' km';
             document.getElementById('sredniaDzienKm').textContent = dane.srednia_dzien;
             document.getElementById('kosztNaKm').textContent = dane.koszt_km + ' zł';
+            
+            const koszt = parseFloat(dane.koszt_km) * parseFloat(dane.miesiac);
+            document.getElementById('kosztyEksploatacji').textContent = koszt.toFixed(2) + ' zł';
         }
 
         function obliczPodatki() {
             const forma = document.getElementById('formaPodatkowa').value;
             const przychod = parseFloat(document.getElementById('przychodBrutto').value) || 0;
-            const koszty = parseFloat(document.getElementById('kosztyPrzychodu').value) || 0;
+            const typKosztow = document.getElementById('typKosztow').value;
+            const dodatkoweKoszty = parseFloat(document.getElementById('dodatkoweKoszty').value) || 0;
+            const ulgaNaStart = document.getElementById('ulgaNaStart').value;
+            
+            let koszty = 0;
+            
+            // Oblicz koszty uzyskania
+            if (forma === 'ryczalt' || forma === 'ryczalt_12') {
+                koszty = 0; // Ryczałt nie ma kosztów uzyskania
+            } else {
+                if (typKosztow === '20') {
+                    koszty = Math.min(przychod * 0.20, 10000); // max 120k rocznie / 12
+                } else if (typKosztow === '50') {
+                    koszty = przychod * 0.50;
+                } else {
+                    koszty = parseFloat(document.getElementById('kosztyRzeczywiste').value) || 0;
+                }
+                koszty += dodatkoweKoszty;
+            }
             
             const dochod = przychod - koszty;
             let podatek = 0;
             
+            // Oblicz podatek
             if (forma === 'ryczalt') {
                 podatek = przychod * 0.085;
+            } else if (forma === 'ryczalt_12') {
+                podatek = przychod * 0.125;
             } else if (forma === 'liniowy') {
                 podatek = dochod * 0.19;
             } else {
                 if (dochod <= 120000) {
-                    podatek = (dochod * 0.17) - 5100;
+                    podatek = (dochod * 0.17) - 425; // kwota wolna miesięcznie
                 } else {
-                    podatek = (120000 * 0.17 - 5100) + ((dochod - 120000) * 0.32);
+                    podatek = (120000 * 0.17 - 425) + ((dochod - 120000) * 0.32);
                 }
             }
             
-            const zus = 1800;
-            const netto = dochod - podatek - zus;
+            podatek = Math.max(podatek, 0);
             
+            // Składka zdrowotna (9% dochodu, max od 60% przeciętnego)
+            const skladkaZdrowotna = dochod * 0.09;
+            
+            // ZUS 2025
+            const podstawaZUS = 4694.40; // minimalna podstawa
+            let zusEmerytalna, zusRentowa, zusChorobowa, zusWypadkowa;
+            
+            if (ulgaNaStart === 'tak') {
+                // Ulga na start - brak ZUS
+                zusEmerytalna = 0;
+                zusRentowa = 0;
+                zusChorobowa = 0;
+                zusWypadkowa = 0;
+            } else {
+                // Normalne składki
+                zusEmerytalna = podstawaZUS * 0.1952;
+                zusRentowa = podstawaZUS * 0.08;
+                zusChorobowa = podstawaZUS * 0.0245; // dobrowolna
+                zusWypadkowa = podstawaZUS * 0.0167;
+            }
+            
+            const zusRazem = zusEmerytalna + zusRentowa + zusChorobowa + zusWypadkowa;
+            const sumaObciazen = podatek + skladkaZdrowotna + zusRazem;
+            const netto = przychod - sumaObciazen;
+            
+            // Aktualizacja wyświetlania
+            document.getElementById('podPrzychod').textContent = przychod.toFixed(2) + ' zł';
+            document.getElementById('podKoszty').textContent = koszty.toFixed(2) + ' zł';
             document.getElementById('podDochod').textContent = dochod.toFixed(2) + ' zł';
             document.getElementById('podPIT').textContent = podatek.toFixed(2) + ' zł';
-            document.getElementById('podZUS').textContent = zus.toFixed(2) + ' zł';
+            document.getElementById('podZdrowotna').textContent = skladkaZdrowotna.toFixed(2) + ' zł';
+            document.getElementById('podZUS').textContent = zusRazem.toFixed(2) + ' zł';
+            document.getElementById('zusEmerytalna').textContent = zusEmerytalna.toFixed(2) + ' zł';
+            document.getElementById('zusRentowa').textContent = zusRentowa.toFixed(2) + ' zł';
+            document.getElementById('zusChorobowa').textContent = zusChorobowa.toFixed(2) + ' zł';
+            document.getElementById('zusWypadkowa').textContent = zusWypadkowa.toFixed(2) + ' zł';
+            document.getElementById('sumaObciazen').textContent = sumaObciazen.toFixed(2) + ' zł';
             document.getElementById('podNetto').textContent = netto.toFixed(2) + ' zł';
+            
+            // Efektywna stawka podatkowa
+            const efektywna = (sumaObciazen / przychod * 100).toFixed(1);
+            document.getElementById('efektywnaSkladka').innerHTML = `- Efektywna stawka obciążeń: <strong>${efektywna}%</strong>`;
+            
+            // Prognoza roczna
+            document.getElementById('progKoszty').textContent = (koszty * 12).toFixed(2) + ' zł';
+            document.getElementById('progPodatek').textContent = (podatek * 12).toFixed(2) + ' zł';
+            document.getElementById('progZUS').textContent = ((zusRazem + skladkaZdrowotna) * 12).toFixed(2) + ' zł';
+            document.getElementById('progNetto').textContent = (netto * 12).toFixed(2) + ' zł';
         }
 
         function obliczBudzet() {
             const rata = parseFloat(document.getElementById('budRata').value) || 0;
             const ubezpieczenie = parseFloat(document.getElementById('budUbezpieczenie').value) || 0;
             const prowizje = parseFloat(document.getElementById('budProwizje').value) || 0;
+            const naprawy = parseFloat(document.getElementById('budNaprawy').value) || 0;
             const inne = parseFloat(document.getElementById('budInne').value) || 0;
             
-            const kosztyStale = rata + ubezpieczenie + prowizje + inne;
-            const podatki = parseFloat(document.getElementById('podPIT').textContent) || 0;
-            const zus = parseFloat(document.getElementById('podZUS').textContent) || 0;
+            const kosztyStale = rata + ubezpieczenie + prowizje + naprawy + inne;
+            const podatki = parseFloat(document.getElementById('sumaObciazen').textContent) || 0;
             const przychody = parseFloat(document.getElementById('przychodBrutto').value) || 0;
             
-            const zostaje = przychody - kosztyStale - podatki - zus;
+            const zostaje = przychody - kosztyStale - podatki;
             
             document.getElementById('budPrzychody').textContent = przychody.toFixed(2) + ' zł';
             document.getElementById('budKosztyStale').textContent = kosztyStale.toFixed(2) + ' zł';
-            document.getElementById('budPodatki').textContent = (podatki + zus).toFixed(2) + ' zł';
+            document.getElementById('budPodatki').textContent = podatki.toFixed(2) + ' zł';
             document.getElementById('budZostaje').textContent = zostaje.toFixed(2) + ' zł';
             
             const wykresData = [{
-                values: [kosztyStale, podatki + zus, zostaje],
+                values: [kosztyStale, podatki, Math.max(zostaje, 0)],
                 labels: ['Koszty stałe', 'Podatki i ZUS', 'Do wypłaty'],
                 type: 'pie',
                 marker: {
@@ -380,6 +590,11 @@
             };
             
             Plotly.newPlot('budWykres', wykresData, wykresLayout);
+        }
+
+        function eksportujRaport() {
+            alert('📥 Funkcja eksportu do PDF będzie wkrótce dostępna!\n\nW międzyczasie możesz użyć funkcji drukowania przeglądarki (Ctrl+P).');
+            window.print();
         }
 
         // Załaduj dane przy starcie
