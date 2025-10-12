@@ -6,11 +6,13 @@ Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers
 
 ## Recent Changes (October 2025)
 
+- **Migrated to PostgreSQL** - Replaced SQLite with PostgreSQL for better scalability and production readiness
 - **Added user authentication system** - Email/password login with secure password hashing
 - **Multi-user support** - Each user has separate data files (kursy.txt and cele.txt) stored in user_data/{user_id}/
 - **Platform comparison feature** - Track and compare profitability across different taxi platforms (Uber, Bolt, FreeNow, etc.)
-- **Database integration** - SQLite database for user management
+- **Database integration** - PostgreSQL database for user management via SQLAlchemy
 - **Enhanced security** - Flask-Login for session management, bcrypt for password hashing
+- **Production deployment** - Configured for deployment with Gunicorn and environment-based secrets
 
 ## User Preferences
 
@@ -39,15 +41,17 @@ Preferred communication style: Simple, everyday language.
 
 **Framework:** Flask (Python) - Lightweight WSGI web application framework.
 
-**Architecture Pattern:** Hybrid approach - SQLite database for user authentication and file-based storage for ride data. Flask-Login manages user sessions securely.
+**Architecture Pattern:** Hybrid approach - PostgreSQL database for user authentication and file-based storage for ride data. Flask-Login manages user sessions securely.
 
 **Key Components:**
 1. **app.py** - Main Flask application with route handlers, authentication, and API endpoints
-2. **database.py** - User model and database management (SQLite)
+2. **database.py** - User model and database management (PostgreSQL via SQLAlchemy)
 3. **forms.py** - WTForms for login and registration validation
-4. **Database Storage (SQLite):**
-   - `taxi_calculator.db` - Stores user accounts (email, hashed passwords)
-5. **File Storage (per user):**
+4. **main.py** - Application entry point for deployment
+5. **Database Storage (PostgreSQL):**
+   - Stores user accounts (email, hashed passwords) in `users` table
+   - Managed via Flask-SQLAlchemy ORM
+6. **File Storage (per user):**
    - `user_data/{user_id}/kursy.txt` - Stores ride records with timestamp, distance, time, earnings, hourly rate, and platform
    - `user_data/{user_id}/cele.txt` - Stores user goals (daily target, minimum acceptable rate)
 
@@ -57,18 +61,17 @@ Preferred communication style: Simple, everyday language.
 - **Bcrypt** - Secure password hashing (via werkzeug.security)
 - **Email validation** - Ensures valid email addresses during registration
 
-**Rationale:** Hybrid approach combines the best of both worlds - database for structured user data that requires querying (authentication) and file-based storage for sequential ride records that are simple to parse and backup. Each user has isolated data folders ensuring privacy and data separation.
+**Rationale:** Hybrid approach combines the best of both worlds - PostgreSQL database for structured user data that requires querying (authentication) and file-based storage for sequential ride records that are simple to parse and backup. Each user has isolated data folders ensuring privacy and data separation. PostgreSQL provides better concurrent access, ACID compliance, and production-ready scalability.
 
 **Pros:** 
-- Zero setup overhead
-- Portable (files can be backed up/transferred easily)
-- No database maintenance required
-- Lightweight deployment
+- Scalable for multiple concurrent users
+- ACID compliance for data integrity
+- Portable file storage (files can be backed up/transferred easily)
+- Production-ready deployment
 
 **Cons:**
-- Limited concurrent user support
-- No relational queries
-- Manual parsing required for analytics
+- Requires PostgreSQL setup
+- Manual parsing required for analytics on ride data
 - File corruption risk without proper locking
 
 ### Data Storage Solutions
@@ -189,8 +192,15 @@ Preferred communication style: Simple, everyday language.
 
 ### Deployment Considerations
 
-**No External Database:** Application is self-contained with file-based storage. Can run on any Python environment with Flask installed.
+**Database:** PostgreSQL database required for user authentication. Connection configured via DATABASE_URL environment variable.
 
-**No Authentication Service:** No user authentication system. Single-user application model. Could be extended with Flask-Login or OAuth for multi-user scenarios.
+**Authentication:** Multi-user authentication system implemented with Flask-Login. Email/password authentication with bcrypt password hashing.
 
-**No Cloud Storage:** All data stored locally on server filesystem. Consider adding cloud backup integration (Dropbox, Google Drive) for data persistence.
+**File Storage:** Ride data stored locally on server filesystem in user-specific folders. Consider adding cloud backup integration (Dropbox, Google Drive) for data persistence.
+
+**Environment Variables:**
+- `DATABASE_URL` - PostgreSQL connection string
+- `SESSION_SECRET` - Flask session secret key
+- Other PostgreSQL connection variables (PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE)
+
+**Production Server:** Configured to run with Gunicorn on port 5000. ProxyFix middleware included for proper HTTPS URL generation.
