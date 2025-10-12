@@ -1,7 +1,0 @@
-DATABASE_URL=postgresql://neondb_owner:npg_mwXMop7nGB5K@ep-crimson-scene-aeh93md2.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
-PGDATABASE=neondb
-PGHOST=ep-crimson-scene-aeh93md2.c-2.us-east-2.aws.neon.tech
-PGPASSWORD=npg_mwXMop7nGB5K
-PGPORT=5432
-PGUSER=neondb_owner
-SESSION_SECRET=kOFoO0pJ62MukVk7C5auqPczw7xCF68FtA2Kia7j4Em4okN5+mC1vzrsyuDO3NJGvZPvEuerluKir6EfQo5oyw==
