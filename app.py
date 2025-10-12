@@ -288,6 +288,11 @@ def statystyki():
 def platformy():
     return render_template('platformy.html')
 
+@app.route('/raporty')
+@login_required
+def raporty():
+    return render_template('raporty.html')
+
 @app.route('/cele', methods=['GET', 'POST'])
 @login_required
 def cele():
@@ -573,6 +578,232 @@ def statystyki_platform():
         "wykres_liczba": json.loads(json.dumps(fig_liczba, cls=plotly.utils.PlotlyJSONEncoder)),
         "najlepsza_platforma": najlepsza_platforma,
         "najlepsza_stawka": f"{najlepsza_stawka:.2f}"
+    })
+
+@app.route('/api/raport')
+@login_required
+def api_raport():
+    """Generuje raport za wybrany okres"""
+    typ = request.args.get('typ', 'miesiac')
+    data = request.args.get('data', datetime.datetime.now().strftime('%Y-%m'))
+    
+    try:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+    except FileNotFoundError:
+        return jsonify({
+            "zarobki_brutto": "0.00",
+            "zarobki_netto": "0.00",
+            "liczba_kursow": 0,
+            "przejechane_km": "0.00"
+        })
+    
+    kursy = []
+    kurs = {}
+    
+    for linia in linie:
+        if linia.startswith("["):
+            if kurs:
+                kursy.append(kurs)
+            kurs = {"data": linia[1:20]}
+        elif "Kwota (z napiwkiem):" in linia:
+            kurs["kwota"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
+        elif "Zysk netto:" in linia:
+            kurs["zysk"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
+        elif "Dystans dojazdu (km):" in linia:
+            kurs["dystans_dojazd"] = float(linia.strip().split(":")[1].strip())
+        elif "Dystans z klientem (km):" in linia:
+            kurs["dystans_kurs"] = float(linia.strip().split(":")[1].strip())
+    
+    if kurs and "kwota" in kurs:
+        kursy.append(kurs)
+    
+    kursy_okresu = []
+    for k in kursy:
+        if typ == 'miesiac' and k["data"][:7] == data:
+            kursy_okresu.append(k)
+        elif typ == 'tydzien':
+            pass
+    
+    zarobki_brutto = sum(k.get("kwota", 0) for k in kursy_okresu)
+    zarobki_netto = sum(k.get("zysk", 0) for k in kursy_okresu)
+    liczba_kursow = len(kursy_okresu)
+    przejechane_km = sum(k.get("dystans_dojazd", 0) + k.get("dystans_kurs", 0) for k in kursy_okresu)
+    
+    return jsonify({
+        "zarobki_brutto": f"{zarobki_brutto:.2f}",
+        "zarobki_netto": f"{zarobki_netto:.2f}",
+        "liczba_kursow": liczba_kursow,
+        "przejechane_km": f"{przejechane_km:.2f}"
+    })
+
+@app.route('/api/prognoza')
+@login_required
+def api_prognoza():
+    """Prognozuje zarobki na podstawie historii"""
+    import plotly.graph_objects as go
+    import plotly.utils
+    import json
+    from datetime import timedelta
+    
+    try:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+    except FileNotFoundError:
+        return jsonify({
+            "dni_historii": 0,
+            "prognoza_miesiac": "0.00",
+            "srednia_dzienna": "0.00",
+            "trend": "brak danych",
+            "wykres_data": [],
+            "wykres_layout": {}
+        })
+    
+    kursy = []
+    kurs = {}
+    
+    for linia in linie:
+        if linia.startswith("["):
+            if kurs:
+                kursy.append(kurs)
+            kurs = {"data": linia[1:10], "data_pelna": linia[1:20]}
+        elif "Zysk netto:" in linia:
+            kurs["zysk"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
+    
+    if kurs and "zysk" in kurs:
+        kursy.append(kurs)
+    
+    zarobki_dzienne = {}
+    for k in kursy:
+        if "data" in k and "zysk" in k:
+            data = k["data"]
+            if data not in zarobki_dzienne:
+                zarobki_dzienne[data] = 0
+            zarobki_dzienne[data] += k["zysk"]
+    
+    ostatnie_30_dni = sorted(zarobki_dzienne.items())[-30:]
+    
+    if ostatnie_30_dni:
+        srednia_dzienna = sum(z for d, z in ostatnie_30_dni) / len(ostatnie_30_dni)
+        dzisiaj = datetime.datetime.now()
+        dni_w_miesiacu = (datetime.datetime(dzisiaj.year, dzisiaj.month + 1 if dzisiaj.month < 12 else 1, 1) - datetime.datetime(dzisiaj.year, dzisiaj.month, 1)).days
+        prognoza_miesiac = srednia_dzienna * dni_w_miesiacu
+        
+        pierwsze_5 = sum(z for d, z in ostatnie_30_dni[:5]) / 5 if len(ostatnie_30_dni) >= 5 else srednia_dzienna
+        ostatnie_5 = sum(z for d, z in ostatnie_30_dni[-5:]) / 5 if len(ostatnie_30_dni) >= 5 else srednia_dzienna
+        
+        if ostatnie_5 > pierwsze_5 * 1.1:
+            trend = "rosnący 📈"
+        elif ostatnie_5 < pierwsze_5 * 0.9:
+            trend = "malejący 📉"
+        else:
+            trend = "stabilny ➡️"
+        
+        daty = [d for d, z in ostatnie_30_dni]
+        zarobki = [z for d, z in ostatnie_30_dni]
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=daty,
+            y=zarobki,
+            mode='lines+markers',
+            name='Dzienny zysk',
+            line=dict(color='#667eea', width=2)
+        ))
+        fig.add_trace(go.Scatter(
+            x=daty,
+            y=[srednia_dzienna] * len(daty),
+            mode='lines',
+            name='Średnia',
+            line=dict(color='#10b981', width=2, dash='dash')
+        ))
+        fig.update_layout(
+            title='Historia zarobków dziennych',
+            xaxis_title='Data',
+            yaxis_title='Zysk (zł)',
+            template='plotly_white',
+            height=300
+        )
+        
+        return jsonify({
+            "dni_historii": len(ostatnie_30_dni),
+            "prognoza_miesiac": f"{prognoza_miesiac:.2f}",
+            "srednia_dzienna": f"{srednia_dzienna:.2f}",
+            "trend": trend,
+            "wykres_data": json.loads(json.dumps(fig.data, cls=plotly.utils.PlotlyJSONEncoder)),
+            "wykres_layout": json.loads(json.dumps(fig.layout, cls=plotly.utils.PlotlyJSONEncoder))
+        })
+    else:
+        return jsonify({
+            "dni_historii": 0,
+            "prognoza_miesiac": "0.00",
+            "srednia_dzienna": "0.00",
+            "trend": "brak danych",
+            "wykres_data": [],
+            "wykres_layout": {}
+        })
+
+@app.route('/api/kilometry')
+@login_required
+def api_kilometry():
+    """Zwraca statystyki kilometrów"""
+    try:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+    except FileNotFoundError:
+        return jsonify({
+            "calkowite": "0",
+            "miesiac": "0",
+            "srednia_dzien": "0",
+            "koszt_km": "0.00"
+        })
+    
+    kursy = []
+    kurs = {}
+    
+    for linia in linie:
+        if linia.startswith("["):
+            if kurs:
+                kursy.append(kurs)
+            kurs = {"data": linia[1:10]}
+        elif "Dystans dojazdu (km):" in linia:
+            kurs["dystans_dojazd"] = float(linia.strip().split(":")[1].strip())
+        elif "Dystans z klientem (km):" in linia:
+            kurs["dystans_kurs"] = float(linia.strip().split(":")[1].strip())
+        elif "Koszt paliwa:" in linia:
+            kurs["koszt_paliwa"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
+    
+    if kurs:
+        kursy.append(kurs)
+    
+    calkowity_dystans = 0
+    calkowity_koszt = 0
+    
+    dzisiaj = datetime.datetime.now()
+    miesiac_obecny = dzisiaj.strftime("%Y-%m")
+    dystans_miesiac = 0
+    dni_w_miesiacu = set()
+    
+    for k in kursy:
+        dystans = k.get("dystans_dojazd", 0) + k.get("dystans_kurs", 0)
+        calkowity_dystans += dystans
+        calkowity_koszt += k.get("koszt_paliwa", 0)
+        
+        if k.get("data", "")[:7] == miesiac_obecny:
+            dystans_miesiac += dystans
+            dni_w_miesiacu.add(k.get("data"))
+    
+    koszt_na_km = calkowity_koszt / calkowity_dystans if calkowity_dystans > 0 else 0
+    srednia_dzien = dystans_miesiac / len(dni_w_miesiacu) if dni_w_miesiacu else 0
+    
+    return jsonify({
+        "calkowite": f"{calkowity_dystans:.0f}",
+        "miesiac": f"{dystans_miesiac:.0f}",
+        "srednia_dzien": f"{srednia_dzien:.0f}",
+        "koszt_km": f"{koszt_na_km:.2f}"
     })
 
 if __name__ == '__main__':

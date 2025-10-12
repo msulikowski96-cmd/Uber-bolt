@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raporty i Finanse - Taxi Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-gradient sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-taxi-front"></i> Taxi Calculator
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ url_for('index') }}" class="text-white"><i class="bi bi-calculator"></i></a>
+                <a href="{{ url_for('statystyki') }}" class="text-white"><i class="bi bi-graph-up"></i></a>
+                <a href="{{ url_for('platformy') }}" class="text-white"><i class="bi bi-diagram-3"></i></a>
+                <a href="{{ url_for('raporty') }}" class="text-white"><i class="bi bi-file-earmark-bar-graph-fill"></i></a>
+                <a href="{{ url_for('logout') }}" class="text-white"><i class="bi bi-box-arrow-right"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <h2 class="mb-4"><i class="bi bi-file-earmark-bar-graph"></i> Raporty i Finanse</h2>
+
+        <!-- Wybór okresu -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Wybierz okres raportu</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <select class="form-select" id="okresTyp">
+                            <option value="tydzien">Tydzień</option>
+                            <option value="miesiac" selected>Miesiąc</option>
+                            <option value="kwartal">Kwartał</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="month" class="form-control" id="okresData" value="">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary w-100" onclick="generujRaport()">
+                            <i class="bi bi-file-earmark-text"></i> Generuj Raport
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Podsumowanie okresu -->
+        <div class="row g-3 mb-4" id="podsumowanieOkresu">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">Zarobki brutto</h6>
+                        <h3 id="zarobkiBrutto">0 zł</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">Zarobki netto</h6>
+                        <h3 id="zarobkiNetto">0 zł</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">Liczba kursów</h6>
+                        <h3 id="liczbaKursow">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">Przejechane km</h6>
+                        <h3 id="przejechaneKm">0 km</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prognoza zarobków -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-graph-up-arrow"></i> Prognoza Zarobków</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="prognozaWykres"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle"></i> Przewidywane zarobki</h6>
+                            <p class="mb-2">Na podstawie ostatnich <strong id="dniHistorii">30</strong> dni:</p>
+                            <ul class="mb-0">
+                                <li>Ten miesiąc: <strong id="prognozaMiesiac">0 zł</strong></li>
+                                <li>Średnia dzienna: <strong id="sredniaDzienna">0 zł</strong></li>
+                                <li>Trend: <strong id="trendInfo">stabilny</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Licznik kilometrów -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-speedometer2"></i> Licznik Kilometrów</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Całkowity przebieg</h6>
+                                <h2 id="calkowitePrzejechane">0 km</h2>
+                                <small class="text-muted">Od początku użytkowania</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">W tym miesiącu</h6>
+                                <h2 id="przebiegMiesiac">0 km</h2>
+                                <small class="text-muted">Średnio <span id="sredniaDzienKm">0</span> km/dzień</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Koszt paliwa/km</h6>
+                                <h2 id="kosztNaKm">0 zł</h2>
+                                <small class="text-muted">Średni koszt</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kalkulator podatków -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-receipt"></i> Kalkulator Podatków</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Forma opodatkowania</label>
+                            <select class="form-select" id="formaPodatkowa" onchange="obliczPodatki()">
+                                <option value="ryczalt">Ryczałt 8.5%</option>
+                                <option value="liniowy">Podatek liniowy 19%</option>
+                                <option value="skala">Skala podatkowa (17%/32%)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Przychody (brutto)</label>
+                            <input type="number" class="form-control" id="przychodBrutto" value="0" oninput="obliczPodatki()">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Koszty uzyskania przychodu</label>
+                            <input type="number" class="form-control" id="kosztyPrzychodu" value="0" oninput="obliczPodatki()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-success">
+                            <h6><i class="bi bi-calculator"></i> Szacunkowe podatki:</h6>
+                            <table class="table table-sm mb-0">
+                                <tr>
+                                    <td>Dochód:</td>
+                                    <td class="text-end"><strong id="podDochod">0 zł</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Podatek dochodowy:</td>
+                                    <td class="text-end"><strong id="podPIT">0 zł</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>ZUS (szacunkowo):</td>
+                                    <td class="text-end"><strong id="podZUS">0 zł</strong></td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td><strong>Do wypłaty:</strong></td>
+                                    <td class="text-end"><strong id="podNetto">0 zł</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> To są szacunkowe wartości. Skonsultuj się z księgowym.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budżet miesięczny -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-piggy-bank"></i> Budżet Miesięczny</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Wydatki stałe</h6>
+                        <div class="mb-2">
+                            <label class="form-label">Rata pojazdu/leasing</label>
+                            <input type="number" class="form-control" id="budRata" value="0" oninput="obliczBudzet()">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Ubezpieczenie</label>
+                            <input type="number" class="form-control" id="budUbezpieczenie" value="0" oninput="obliczBudzet()">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Prowizje platform</label>
+                            <input type="number" class="form-control" id="budProwizje" value="0" oninput="obliczBudzet()">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Inne koszty</label>
+                            <input type="number" class="form-control" id="budInne" value="0" oninput="obliczBudzet()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Podsumowanie budżetu</h6>
+                        <div class="alert alert-primary">
+                            <table class="table table-sm mb-0">
+                                <tr>
+                                    <td>Przychody:</td>
+                                    <td class="text-end"><strong id="budPrzychody">0 zł</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Koszty stałe:</td>
+                                    <td class="text-end"><strong id="budKosztyStale">0 zł</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Podatki i ZUS:</td>
+                                    <td class="text-end"><strong id="budPodatki">0 zł</strong></td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td><strong>Zostaje:</strong></td>
+                                    <td class="text-end"><strong id="budZostaje" class="text-success">0 zł</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div id="budWykres"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Ustaw bieżący miesiąc
+        const dzisiaj = new Date();
+        document.getElementById('okresData').value = dzisiaj.toISOString().slice(0, 7);
+
+        async function generujRaport() {
+            const typ = document.getElementById('okresTyp').value;
+            const data = document.getElementById('okresData').value;
+            
+            const response = await fetch(`/api/raport?typ=${typ}&data=${data}`);
+            const dane = await response.json();
+            
+            document.getElementById('zarobkiBrutto').textContent = dane.zarobki_brutto + ' zł';
+            document.getElementById('zarobkiNetto').textContent = dane.zarobki_netto + ' zł';
+            document.getElementById('liczbaKursow').textContent = dane.liczba_kursow;
+            document.getElementById('przejechaneKm').textContent = dane.przejechane_km + ' km';
+        }
+
+        async function ladujPrognoze() {
+            const response = await fetch('/api/prognoza');
+            const dane = await response.json();
+            
+            document.getElementById('dniHistorii').textContent = dane.dni_historii;
+            document.getElementById('prognozaMiesiac').textContent = dane.prognoza_miesiac + ' zł';
+            document.getElementById('sredniaDzienna').textContent = dane.srednia_dzienna + ' zł';
+            document.getElementById('trendInfo').textContent = dane.trend;
+            
+            Plotly.newPlot('prognozaWykres', dane.wykres_data, dane.wykres_layout);
+        }
+
+        async function ladujKilometry() {
+            const response = await fetch('/api/kilometry');
+            const dane = await response.json();
+            
+            document.getElementById('calkowitePrzejechane').textContent = dane.calkowite + ' km';
+            document.getElementById('przebiegMiesiac').textContent = dane.miesiac + ' km';
+            document.getElementById('sredniaDzienKm').textContent = dane.srednia_dzien;
+            document.getElementById('kosztNaKm').textContent = dane.koszt_km + ' zł';
+        }
+
+        function obliczPodatki() {
+            const forma = document.getElementById('formaPodatkowa').value;
+            const przychod = parseFloat(document.getElementById('przychodBrutto').value) || 0;
+            const koszty = parseFloat(document.getElementById('kosztyPrzychodu').value) || 0;
+            
+            const dochod = przychod - koszty;
+            let podatek = 0;
+            
+            if (forma === 'ryczalt') {
+                podatek = przychod * 0.085;
+            } else if (forma === 'liniowy') {
+                podatek = dochod * 0.19;
+            } else {
+                if (dochod <= 120000) {
+                    podatek = (dochod * 0.17) - 5100;
+                } else {
+                    podatek = (120000 * 0.17 - 5100) + ((dochod - 120000) * 0.32);
+                }
+            }
+            
+            const zus = 1800;
+            const netto = dochod - podatek - zus;
+            
+            document.getElementById('podDochod').textContent = dochod.toFixed(2) + ' zł';
+            document.getElementById('podPIT').textContent = podatek.toFixed(2) + ' zł';
+            document.getElementById('podZUS').textContent = zus.toFixed(2) + ' zł';
+            document.getElementById('podNetto').textContent = netto.toFixed(2) + ' zł';
+        }
+
+        function obliczBudzet() {
+            const rata = parseFloat(document.getElementById('budRata').value) || 0;
+            const ubezpieczenie = parseFloat(document.getElementById('budUbezpieczenie').value) || 0;
+            const prowizje = parseFloat(document.getElementById('budProwizje').value) || 0;
+            const inne = parseFloat(document.getElementById('budInne').value) || 0;
+            
+            const kosztyStale = rata + ubezpieczenie + prowizje + inne;
+            const podatki = parseFloat(document.getElementById('podPIT').textContent) || 0;
+            const zus = parseFloat(document.getElementById('podZUS').textContent) || 0;
+            const przychody = parseFloat(document.getElementById('przychodBrutto').value) || 0;
+            
+            const zostaje = przychody - kosztyStale - podatki - zus;
+            
+            document.getElementById('budPrzychody').textContent = przychody.toFixed(2) + ' zł';
+            document.getElementById('budKosztyStale').textContent = kosztyStale.toFixed(2) + ' zł';
+            document.getElementById('budPodatki').textContent = (podatki + zus).toFixed(2) + ' zł';
+            document.getElementById('budZostaje').textContent = zostaje.toFixed(2) + ' zł';
+            
+            const wykresData = [{
+                values: [kosztyStale, podatki + zus, zostaje],
+                labels: ['Koszty stałe', 'Podatki i ZUS', 'Do wypłaty'],
+                type: 'pie',
+                marker: {
+                    colors: ['#dc3545', '#ffc107', '#28a745']
+                }
+            }];
+            
+            const wykresLayout = {
+                height: 300,
+                margin: {t: 0, b: 0, l: 0, r: 0}
+            };
+            
+            Plotly.newPlot('budWykres', wykresData, wykresLayout);
+        }
+
+        // Załaduj dane przy starcie
+        generujRaport();
+        ladujPrognoze();
+        ladujKilometry();
+        obliczPodatki();
+    </script>
+</body>
+</html>
