@@ -19,7 +19,7 @@ deploymentTarget = "autoscale"
 expertMode = true
 
 [workflows]
-runButton = "Project"
+runButton = "Run"
 
 [[workflows.workflow]]
 name = "Run"
