@@ -33,7 +33,9 @@ class User(UserMixin, db.Model):
         password_hash = generate_password_hash(password)
         
         try:
-            user = User(email=email, password_hash=password_hash)
+            user = User()
+            user.email = email
+            user.password_hash = password_hash
             db.session.add(user)
             db.session.commit()
             
