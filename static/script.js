@@ -75,7 +75,11 @@ function pokazPowiadomienia(powiadomienia) {
     powiadomienia.forEach(powiadomienie => {
         const div = document.createElement('div');
         div.className = `alert alert-${powiadomienie.typ} mt-3`;
-        div.innerHTML = `<strong>${powiadomienie.tekst}</strong>`;
+        
+        const strong = document.createElement('strong');
+        strong.textContent = powiadomienie.tekst;
+        div.appendChild(strong);
+        
         container.appendChild(div);
     });
 }
