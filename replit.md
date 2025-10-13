@@ -10,9 +10,11 @@ Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers
 - **Added user authentication system** - Email/password login with secure password hashing
 - **Multi-user support** - Each user has separate data files (kursy.txt and cele.txt) stored in user_data/{user_id}/
 - **Platform comparison feature** - Track and compare profitability across different taxi platforms (Uber, Bolt, FreeNow, etc.)
+- **Shift profitability heatmap** - Interactive heatmap showing average earnings by weekday and hour with top 3 most profitable time slots recommendations
 - **Database integration** - PostgreSQL database for user management via SQLAlchemy
 - **Enhanced security** - Flask-Login for session management, bcrypt for password hashing
 - **Production deployment** - Configured for deployment with Gunicorn and environment-based secrets
+- **Code quality improvements** - Fixed unbound variable bugs in data processing functions
 
 ## User Preferences
 
