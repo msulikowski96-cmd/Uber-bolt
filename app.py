@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
+from urllib.parse import urlparse, urljoin
 import datetime
 import os
 from database import db, User, get_user_folder, init_db
@@ -29,6 +30,14 @@ init_db(app)
 @login_manager.user_loader
 def load_user(user_id):
     return User.get_by_id(user_id)
+
+def is_safe_url(target):
+    """Validate that a redirect URL is safe (relative path only)"""
+    if not target:
+        return False
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 def get_user_file(filename):
     """Zwraca ścieżkę do pliku użytkownika"""
@@ -232,7 +241,9 @@ def login():
             login_user(user)
             flash('Zalogowano pomyślnie!', 'success')
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('index'))
+            if next_page and is_safe_url(next_page):
+                return redirect(next_page)
+            return redirect(url_for('index'))
         else:
             flash('Nieprawidłowy email lub hasło.', 'error')
     
