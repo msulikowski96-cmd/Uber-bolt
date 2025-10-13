@@ -806,5 +806,103 @@ def api_kilometry():
         "koszt_km": f"{koszt_na_km:.2f}"
     })
 
+@app.route('/api/heatmap_rentownosci')
+@login_required
+def api_heatmap_rentownosci():
+    """Generuje heatmapę rentowności według dnia tygodnia i godziny"""
+    import plotly.graph_objects as go
+    import plotly.utils
+    import json
+    from collections import defaultdict
+    
+    try:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+    except FileNotFoundError:
+        return jsonify({"error": "Brak danych"})
+    
+    kursy = []
+    kurs = {}
+    
+    for linia in linie:
+        if linia.startswith("["):
+            if kurs:
+                kursy.append(kurs)
+            kurs = {"data_pelna": linia[1:20]}
+        elif "Zysk netto:" in linia:
+            kurs["zysk"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
+    
+    if kurs and "zysk" in kurs:
+        kursy.append(kurs)
+    
+    if not kursy:
+        return jsonify({"error": "Brak danych"})
+    
+    rentownosc = defaultdict(lambda: defaultdict(list))
+    
+    dni_tygodnia_pl = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela']
+    
+    for k in kursy:
+        if "data_pelna" in k and "zysk" in k:
+            try:
+                data_obj = datetime.datetime.strptime(k["data_pelna"], "%Y-%m-%d %H:%M:%S")
+                dzien_tygodnia = data_obj.weekday()
+                godzina = data_obj.hour
+                rentownosc[dzien_tygodnia][godzina].append(k["zysk"])
+            except:
+                continue
+    
+    godziny = list(range(24))
+    macierz_rentownosci = []
+    
+    for dzien in range(7):
+        wiersz = []
+        for godzina in godziny:
+            if rentownosc[dzien][godzina]:
+                srednia = sum(rentownosc[dzien][godzina]) / len(rentownosc[dzien][godzina])
+                wiersz.append(srednia)
+            else:
+                wiersz.append(None)
+        macierz_rentownosci.append(wiersz)
+    
+    fig = go.Figure(data=go.Heatmap(
+        z=macierz_rentownosci,
+        x=[f"{g:02d}:00" for g in godziny],
+        y=dni_tygodnia_pl,
+        colorscale='RdYlGn',
+        hoverongaps=False,
+        hovertemplate='%{y}<br>%{x}<br>Średni zysk: %{z:.2f} zł<extra></extra>'
+    ))
+    
+    fig.update_layout(
+        title='Rentowność według dnia tygodnia i godziny',
+        xaxis_title='Godzina',
+        yaxis_title='Dzień tygodnia',
+        template='plotly_white',
+        height=500
+    )
+    
+    najlepsze_sloty = []
+    for dzien in range(7):
+        for godzina in godziny:
+            if rentownosc[dzien][godzina]:
+                srednia = sum(rentownosc[dzien][godzina]) / len(rentownosc[dzien][godzina])
+                liczba_kursow = len(rentownosc[dzien][godzina])
+                najlepsze_sloty.append({
+                    'dzien': dni_tygodnia_pl[dzien],
+                    'godzina': f"{godzina:02d}:00",
+                    'sredni_zysk': srednia,
+                    'liczba_kursow': liczba_kursow
+                })
+    
+    najlepsze_sloty.sort(key=lambda x: x['sredni_zysk'], reverse=True)
+    top_3 = najlepsze_sloty[:3]
+    
+    return jsonify({
+        "wykres": json.loads(json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)),
+        "top_sloty": top_3
+    })
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
