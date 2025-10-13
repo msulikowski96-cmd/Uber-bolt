@@ -19,7 +19,7 @@ deploymentTarget = "autoscale"
 expertMode = true
 
 [workflows]
-runButton = "Run"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Run"
@@ -51,6 +51,10 @@ waitForPort = 5000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 40655
+externalPort = 3001
 
 [[ports]]
 localPort = 45615
