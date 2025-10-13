@@ -1,0 +1,17 @@
+
+[2025-10-13 20:58:35]
+Platforma: Uber
+Dystans dojazdu (km): 13.00
+Czas dojazdu (min): 19
+Dystans z klientem (km): 23.00
+Czas kursu (min): 32
+Kwota (z napiwkiem): 100.00 zł
+Procent dla kierowcy: 100%
+Koszt paliwa: 4.55 zł
+Zysk netto: 95.45 zł
+Stawka godzinowa: 112.29 zł/h
+Ocena: 💰 Kurs bardzo opłacalny!
+----------------------------------------
+
+📊 Podsumowanie dnia 2025-10-13 - średnia stawka godzinowa: 112.29 zł/h
+========================================

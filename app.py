@@ -111,6 +111,7 @@ def aktualizuj_srednia_dnia():
     dzisiaj = datetime.datetime.now().strftime("%Y-%m-%d")
     stawki = []
     nowe_linie = []
+    dzien = None
 
     for linia in linie:
         if linia.startswith("📊 Podsumowanie dnia") and dzisiaj in linia:
