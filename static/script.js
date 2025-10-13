@@ -1,3 +1,27 @@
+// Funkcje mobilnego menu
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+}
+
+// Zamknij sidebar po kliknięciu w link (tylko na mobile)
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.innerWidth <= 768) {
+        const sidebarLinks = document.querySelectorAll('.sidebar a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', closeSidebar);
+        });
+    }
+});
 
 // Funkcje obsługi celów
 async function wczytajCele() {

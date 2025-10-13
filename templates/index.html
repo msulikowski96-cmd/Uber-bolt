@@ -37,10 +37,28 @@
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <button class="hamburger-btn" onclick="toggleSidebar()">
+            <i class="bi bi-list"></i>
+        </button>
+        <div class="mobile-logo">
+            <i class="bi bi-taxi-front"></i>
+            <span>Taxi Calculator</span>
+        </div>
+    </div>
+
+    <!-- Overlay dla mobilnego menu -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 sidebar">
+            <div class="col-md-3 sidebar" id="sidebar">
+                <button class="sidebar-close-btn" onclick="closeSidebar()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                
                 <div class="logo-section">
                     <i class="bi bi-taxi-front taxi-icon"></i>
                     <h3 class="mt-3">Taxi Calculator</h3>
