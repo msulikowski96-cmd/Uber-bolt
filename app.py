@@ -4,7 +4,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from urllib.parse import urlparse, urljoin
 import datetime
 import os
-from database import db, User, get_user_folder, init_db
+from database import db, User, UberToken, get_user_folder, init_db
 from forms import LoginForm, RegistrationForm
 from uber_api import UberDriverAPI
 
@@ -919,6 +919,84 @@ def api_heatmap_rentownosci():
         "top_sloty": top_3
     })
 
+@app.route('/uber/authorize')
+@login_required
+def uber_authorize():
+    """Przekierowuje użytkownika do Uber w celu autoryzacji"""
+    uber = UberDriverAPI(sandbox=True)
+    
+    redirect_uri = url_for('uber_callback', _external=True)
+    
+    import secrets
+    state = secrets.token_urlsafe(32)
+    from flask import session
+    session['uber_oauth_state'] = state
+    
+    auth_url = uber.get_authorization_url(redirect_uri, state)
+    return redirect(auth_url)
+
+@app.route('/uber/callback')
+@login_required
+def uber_callback():
+    """Odbiera kod autoryzacyjny z Uber i zapisuje tokeny"""
+    from flask import session
+    
+    code = request.args.get('code')
+    state = request.args.get('state')
+    error = request.args.get('error')
+    
+    if error:
+        flash(f'Błąd autoryzacji Uber: {error}', 'danger')
+        return redirect(url_for('index'))
+    
+    if not code:
+        flash('Brak kodu autoryzacyjnego', 'danger')
+        return redirect(url_for('index'))
+    
+    stored_state = session.get('uber_oauth_state')
+    if not stored_state or stored_state != state:
+        flash('Błąd bezpieczeństwa: nieprawidłowy state', 'danger')
+        return redirect(url_for('index'))
+    
+    uber = UberDriverAPI(sandbox=True)
+    redirect_uri = url_for('uber_callback', _external=True)
+    
+    token_data = uber.exchange_code_for_token(code, redirect_uri)
+    
+    if not token_data:
+        flash('Nie udało się uzyskać tokenów od Uber', 'danger')
+        return redirect(url_for('index'))
+    
+    UberToken.save_tokens(
+        user_id=current_user.id,
+        access_token=token_data.get('access_token'),
+        refresh_token=token_data.get('refresh_token'),
+        expires_in=token_data.get('expires_in'),
+        scope=token_data.get('scope')
+    )
+    
+    session.pop('uber_oauth_state', None)
+    
+    flash('✅ Pomyślnie połączono z Uber!', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/uber/disconnect', methods=['POST'])
+@login_required
+def uber_disconnect():
+    """Rozłącza konto Uber"""
+    UberToken.delete_by_user_id(current_user.id)
+    return jsonify({'success': True, 'message': 'Rozłączono z Uber'})
+
+@app.route('/uber/status')
+@login_required
+def uber_status():
+    """Sprawdza status połączenia z Uber"""
+    token = UberToken.get_by_user_id(current_user.id)
+    return jsonify({
+        'connected': token is not None,
+        'scope': token.scope if token else None
+    })
+
 @app.route('/uber/test')
 @login_required
 def uber_test():
@@ -930,17 +1008,41 @@ def uber_test():
 @app.route('/uber/sync', methods=['POST'])
 @login_required
 def uber_sync():
-    """Synchronizuje kursy z Uber API"""
+    """Synchronizuje kursy z Uber API używając zapisanych tokenów"""
     try:
+        token = UberToken.get_by_user_id(current_user.id)
+        
+        if not token:
+            return jsonify({
+                'success': False,
+                'message': 'Najpierw połącz konto z Uber - kliknij "Połącz z Uber"'
+            })
+        
+        from datetime import datetime as dt
+        if token.expires_at and token.expires_at < dt.utcnow():
+            if token.refresh_token:
+                uber = UberDriverAPI(sandbox=True)
+                new_token_data = uber.refresh_access_token(token.refresh_token)
+                if new_token_data:
+                    UberToken.save_tokens(
+                        user_id=current_user.id,
+                        access_token=new_token_data.get('access_token'),
+                        refresh_token=new_token_data.get('refresh_token', token.refresh_token),
+                        expires_in=new_token_data.get('expires_in'),
+                        scope=new_token_data.get('scope', token.scope)
+                    )
+                    token = UberToken.get_by_user_id(current_user.id)
+                else:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Token wygasł - połącz ponownie z Uber'
+                    })
+        
         data = request.json or {}
         days = data.get('days', 30)
         
-        uber = UberDriverAPI()
-        if not uber.authenticate():
-            return jsonify({
-                'success': False,
-                'message': 'Nie udało się uwierzytelnić z Uber API. Sprawdź klucze API.'
-            })
+        uber = UberDriverAPI(sandbox=True)
+        uber.set_access_token(token.access_token)
         
         start_date = datetime.datetime.now() - datetime.timedelta(days=days)
         trips = uber.get_trips(start_date=start_date)
@@ -948,7 +1050,7 @@ def uber_sync():
         if not trips:
             return jsonify({
                 'success': False,
-                'message': 'Nie znaleziono kursów lub wystąpił błąd.'
+                'message': 'Nie znaleziono kursów lub wystąpił błąd API.'
             })
         
         imported_count = 0
