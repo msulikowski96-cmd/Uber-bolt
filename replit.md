@@ -6,15 +6,24 @@ Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers
 
 ## Recent Changes (October 2025)
 
+- **Uber Driver API Integration (OAuth 2.0)** - Full OAuth integration for automatic trip import from Uber Driver API
+  - Secure authorization_code flow with CSRF protection via state tokens
+  - Automatic token refresh and cleanup for expired credentials
+  - User-specific token storage in `user_tokens` table (access_token, refresh_token, expires_at)
+  - Dynamic UI showing connection status and sync options
+- **Mobile-Responsive Interface** - Enhanced mobile-first design across all pages
+  - Hamburger menu with animated sidebar navigation
+  - Responsive breakpoints for optimal viewing on all devices
+  - Touch-friendly controls and card layouts
 - **Migrated to PostgreSQL** - Replaced SQLite with PostgreSQL for better scalability and production readiness
 - **Added user authentication system** - Email/password login with secure password hashing
 - **Multi-user support** - Each user has separate data files (kursy.txt and cele.txt) stored in user_data/{user_id}/
 - **Platform comparison feature** - Track and compare profitability across different taxi platforms (Uber, Bolt, FreeNow, etc.)
 - **Shift profitability heatmap** - Interactive heatmap showing average earnings by weekday and hour with top 3 most profitable time slots recommendations
 - **Database integration** - PostgreSQL database for user management via SQLAlchemy
-- **Enhanced security** - Flask-Login for session management, bcrypt for password hashing
+- **Enhanced security** - Flask-Login for session management, bcrypt for password hashing, OAuth state validation
 - **Production deployment** - Configured for deployment with Gunicorn and environment-based secrets
-- **Code quality improvements** - Fixed unbound variable bugs in data processing functions
+- **Code quality improvements** - Fixed unbound variable bugs, sanitized OAuth logging, proper error handling
 
 ## User Preferences
 
