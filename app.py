@@ -6,6 +6,7 @@ import datetime
 import os
 from database import db, User, get_user_folder, init_db
 from forms import LoginForm, RegistrationForm
+from uber_api import UberDriverAPI
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "taxi-calculator-secret-key-2025-auth")
@@ -915,6 +916,124 @@ def api_heatmap_rentownosci():
         "wykres": json.loads(json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)),
         "top_sloty": top_3
     })
+
+@app.route('/uber/test')
+@login_required
+def uber_test():
+    """Testuje połączenie z Uber API"""
+    from uber_api import test_connection
+    result = test_connection()
+    return jsonify(result)
+
+@app.route('/uber/sync', methods=['POST'])
+@login_required
+def uber_sync():
+    """Synchronizuje kursy z Uber API"""
+    try:
+        data = request.json
+        days = data.get('days', 30)
+        
+        uber = UberDriverAPI()
+        if not uber.authenticate():
+            return jsonify({
+                'success': False,
+                'message': 'Nie udało się uwierzytelnić z Uber API. Sprawdź klucze API.'
+            })
+        
+        start_date = datetime.datetime.now() - datetime.timedelta(days=days)
+        trips = uber.get_trips(start_date=start_date)
+        
+        if not trips:
+            return jsonify({
+                'success': False,
+                'message': 'Nie znaleziono kursów lub wystąpił błąd.'
+            })
+        
+        imported_count = 0
+        skipped_count = 0
+        
+        for trip in trips:
+            trip_data = uber.convert_trip_to_app_format(trip)
+            if trip_data:
+                zapisz_do_pliku(trip_data)
+                imported_count += 1
+            else:
+                skipped_count += 1
+        
+        return jsonify({
+            'success': True,
+            'message': f'Zaimportowano {imported_count} kursów z Uber',
+            'imported': imported_count,
+            'skipped': skipped_count
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Błąd podczas synchronizacji: {str(e)}'
+        })
+
+@app.route('/uber/profile')
+@login_required
+def uber_profile():
+    """Pobiera profil kierowcy z Uber"""
+    try:
+        uber = UberDriverAPI()
+        if not uber.authenticate():
+            return jsonify({
+                'success': False,
+                'message': 'Nie udało się uwierzytelnić'
+            })
+        
+        profile = uber.get_driver_profile()
+        if profile:
+            return jsonify({
+                'success': True,
+                'profile': profile
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Nie udało się pobrać profilu'
+            })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
+
+@app.route('/uber/earnings')
+@login_required
+def uber_earnings():
+    """Pobiera zarobki z Uber"""
+    try:
+        days = request.args.get('days', 30, type=int)
+        
+        uber = UberDriverAPI()
+        if not uber.authenticate():
+            return jsonify({
+                'success': False,
+                'message': 'Nie udało się uwierzytelnić'
+            })
+        
+        start_date = datetime.datetime.now() - datetime.timedelta(days=days)
+        earnings = uber.get_earnings(start_date=start_date)
+        
+        if earnings:
+            return jsonify({
+                'success': True,
+                'earnings': earnings
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Nie udało się pobrać zarobków'
+            })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
