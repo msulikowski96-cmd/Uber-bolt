@@ -352,6 +352,7 @@
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
         let allRides = [];
+        let currentRides = []; // Aktualne wyświetlane kursy (po filtrowaniu)
         let platformy = new Set();
 
         async function loadHistory() {
@@ -388,6 +389,9 @@
             const tbody = document.getElementById('history-tbody');
             const emptyState = document.getElementById('empty-state');
             const table = document.getElementById('history-table');
+            
+            // Zapisz aktualne kursy do zmiennej globalnej
+            currentRides = rides;
             
             if (rides.length === 0) {
                 table.style.display = 'none';
@@ -474,7 +478,8 @@
         }
 
         function showRideDetails(index) {
-            const ride = allRides[index];
+            // Pobierz kurs z aktualnie wyświetlanych kursów
+            const ride = currentRides[index];
             if (!ride) return;
 
             // Wypełnij modal danymi
