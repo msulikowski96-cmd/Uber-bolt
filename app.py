@@ -143,6 +143,59 @@ def aktualizuj_srednia_dnia():
         return srednia
     return None
 
+def wczytaj_historie_kursow():
+    """Wczytuje pełną historię kursów z pliku."""
+    try:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "r", encoding="utf-8") as plik:
+            linie = plik.readlines()
+    except FileNotFoundError:
+        return []
+    
+    kursy = []
+    kurs = {}
+    data_czas = None
+    
+    for linia in linie:
+        linia = linia.strip()
+        
+        # Pomijaj linie podsumowań i separatorów
+        if linia.startswith("📊") or linia.startswith("=") or not linia:
+            continue
+            
+        # Znacznik czasu
+        if linia.startswith("[") and linia.endswith("]"):
+            # Zapisz poprzedni kurs jeśli istnieje
+            if kurs and data_czas:
+                kurs['data_czas'] = data_czas
+                kursy.append(kurs)
+            # Rozpocznij nowy kurs
+            data_czas = linia[1:-1]
+            kurs = {}
+        # Separator między kursami
+        elif linia.startswith("-"):
+            if kurs and data_czas:
+                kurs['data_czas'] = data_czas
+                kursy.append(kurs)
+                kurs = {}
+                data_czas = None
+        # Parsuj dane kursu
+        elif ":" in linia:
+            klucz, wartosc = linia.split(":", 1)
+            klucz = klucz.strip()
+            wartosc = wartosc.strip()
+            kurs[klucz] = wartosc
+    
+    # Dodaj ostatni kurs jeśli istnieje
+    if kurs and data_czas:
+        kurs['data_czas'] = data_czas
+        kursy.append(kurs)
+    
+    # Odwróć listę, aby najnowsze kursy były pierwsze
+    kursy.reverse()
+    
+    return kursy
+
 def oblicz_oplacalnosc(dane):
     dystans_dojazdu = float(dane['dystans_dojazdu'])
     czas_dojazdu = float(dane['czas_dojazdu'])
@@ -304,6 +357,17 @@ def platformy():
 @login_required
 def raporty():
     return render_template('raporty.html')
+
+@app.route('/historia')
+@login_required
+def historia():
+    return render_template('historia.html')
+
+@app.route('/api/historia')
+@login_required
+def api_historia():
+    kursy = wczytaj_historie_kursow()
+    return jsonify(kursy)
 
 @app.route('/cele', methods=['GET', 'POST'])
 @login_required
