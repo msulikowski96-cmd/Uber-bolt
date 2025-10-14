@@ -79,29 +79,6 @@
                     <a href="/raporty" class="btn btn-outline-light w-100 mb-2">
                         <i class="bi bi-file-earmark-bar-graph"></i> Raporty i Finanse
                     </a>
-                    
-                    <!-- Integracja z Uber -->
-                    {% if current_user.uber_access_token %}
-                    <div class="alert alert-success mb-2" style="padding: 10px; font-size: 0.9rem;">
-                        <i class="bi bi-check-circle-fill"></i> Połączono z Uber
-                    </div>
-                    <form action="/uber/import" method="POST" style="display: inline; width: 100%;">
-                        <button type="submit" class="btn btn-warning w-100 mb-2">
-                            <i class="bi bi-cloud-download"></i> Importuj z Uber
-                        </button>
-                    </form>
-                    <form action="/uber/disconnect" method="POST" style="display: inline; width: 100%;">
-                        <button type="submit" class="btn btn-outline-light w-100 mb-2">
-                            <i class="bi bi-x-circle"></i> Odłącz Uber
-                        </button>
-                    </form>
-                    {% else %}
-                    <a href="/uber/login" class="btn btn-warning w-100 mb-2">
-                        <i class="bi bi-link-45deg"></i> Połącz z Uber
-                    </a>
-                    <p class="text-muted" style="font-size: 0.8rem; margin-top: 5px;">Importuj automatycznie kursy z Uber</p>
-                    {% endif %}
-                    
                     <button class="btn btn-outline-light w-100" onclick="przełączTryb()">
                         <i class="bi bi-moon-stars" id="theme-icon"></i> 
                         <span id="theme-text">Tryb ciemny</span>

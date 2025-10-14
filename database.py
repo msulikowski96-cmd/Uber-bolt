@@ -16,9 +16,6 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    uber_access_token = db.Column(db.String(512), nullable=True)
-    uber_refresh_token = db.Column(db.String(512), nullable=True)
-    uber_token_expiry = db.Column(db.DateTime, nullable=True)
     
     @staticmethod
     def get_by_id(user_id):
