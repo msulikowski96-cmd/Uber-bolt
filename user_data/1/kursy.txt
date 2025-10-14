@@ -15,3 +15,52 @@ Ocena: 💰 Kurs bardzo opłacalny!
 
 📊 Podsumowanie dnia 2025-10-13 - średnia stawka godzinowa: 112.29 zł/h
 ========================================
+
+[2025-10-14 07:24:27]
+Platforma: Bolt
+Dystans dojazdu (km): 5.00
+Czas dojazdu (min): 10
+Dystans z klientem (km): 10.00
+Czas kursu (min): 18
+Kwota (z napiwkiem): 28.00 zł
+Procent dla kierowcy: 10%
+Koszt paliwa: 1.76 zł
+Zysk netto: 1.04 zł
+Stawka godzinowa: 2.22 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+========================================
+
+[2025-10-14 07:24:37]
+Platforma: Uber
+Dystans dojazdu (km): 5.00
+Czas dojazdu (min): 10
+Dystans z klientem (km): 10.00
+Czas kursu (min): 18
+Kwota (z napiwkiem): 28.00 zł
+Procent dla kierowcy: 10%
+Koszt paliwa: 1.76 zł
+Zysk netto: 1.04 zł
+Stawka godzinowa: 2.22 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+========================================
+
+[2025-10-14 07:24:44]
+Platforma: Uber
+Dystans dojazdu (km): 5.00
+Czas dojazdu (min): 10
+Dystans z klientem (km): 6.00
+Czas kursu (min): 18
+Kwota (z napiwkiem): 28.00 zł
+Procent dla kierowcy: 10%
+Koszt paliwa: 1.29 zł
+Zysk netto: 1.51 zł
+Stawka godzinowa: 3.23 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+📊 Podsumowanie dnia 2025-10-14 - średnia stawka godzinowa: 2.56 zł/h
+========================================
