@@ -930,7 +930,7 @@ def uber_test():
 def uber_sync():
     """Synchronizuje kursy z Uber API"""
     try:
-        data = request.json
+        data = request.json or {}
         days = data.get('days', 30)
         
         uber = UberDriverAPI()
