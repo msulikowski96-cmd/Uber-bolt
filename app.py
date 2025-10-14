@@ -1,11 +1,14 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, quote
 import datetime
 import os
 from database import db, User, get_user_folder, init_db
 from forms import LoginForm, RegistrationForm
+from uber_rides.auth import AuthorizationCodeGrant
+from uber_rides.client import UberRidesClient
+import requests
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "taxi-calculator-secret-key-2025-auth")
@@ -915,6 +918,132 @@ def api_heatmap_rentownosci():
         "wykres": json.loads(json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)),
         "top_sloty": top_3
     })
+
+# Uber OAuth endpoints
+@app.route('/uber/login')
+@login_required
+def uber_login():
+    """Rozpoczyna proces autoryzacji OAuth z Uber"""
+    client_id = os.environ.get('UBER_CLIENT_ID')
+    redirect_uri = url_for('uber_callback', _external=True, _scheme='https')
+    
+    auth_flow = AuthorizationCodeGrant(
+        client_id,
+        scopes=['profile', 'history', 'history_lite'],
+        redirect_url=redirect_uri
+    )
+    
+    auth_url = auth_flow.get_authorization_url()
+    return redirect(auth_url)
+
+@app.route('/uber/callback')
+@login_required
+def uber_callback():
+    """Odbiera kod autoryzacyjny i wymienia go na token dostępu"""
+    code = request.args.get('code')
+    error = request.args.get('error')
+    
+    if error:
+        flash(f'Błąd autoryzacji Uber: {error}', 'danger')
+        return redirect(url_for('index'))
+    
+    if not code:
+        flash('Brak kodu autoryzacyjnego od Uber', 'danger')
+        return redirect(url_for('index'))
+    
+    try:
+        client_id = os.environ.get('UBER_CLIENT_ID')
+        client_secret = os.environ.get('UBER_CLIENT_SECRET')
+        redirect_uri = url_for('uber_callback', _external=True, _scheme='https')
+        
+        auth_flow = AuthorizationCodeGrant(
+            client_id,
+            scopes=['profile', 'history', 'history_lite'],
+            client_secret=client_secret,
+            redirect_url=redirect_uri
+        )
+        
+        session_data = auth_flow.get_session(code)
+        
+        current_user.uber_access_token = session_data.token['access_token']
+        if 'refresh_token' in session_data.token:
+            current_user.uber_refresh_token = session_data.token['refresh_token']
+        if 'expires_in' in session_data.token:
+            expiry_time = datetime.datetime.now() + datetime.timedelta(seconds=session_data.token['expires_in'])
+            current_user.uber_token_expiry = expiry_time
+        
+        db.session.commit()
+        
+        flash('Konto Uber zostało pomyślnie połączone!', 'success')
+        return redirect(url_for('index'))
+        
+    except Exception as e:
+        flash(f'Błąd podczas łączenia z Uber: {str(e)}', 'danger')
+        return redirect(url_for('index'))
+
+@app.route('/uber/disconnect', methods=['POST'])
+@login_required
+def uber_disconnect():
+    """Odłącza konto Uber"""
+    current_user.uber_access_token = None
+    current_user.uber_refresh_token = None
+    current_user.uber_token_expiry = None
+    db.session.commit()
+    
+    flash('Konto Uber zostało odłączone', 'info')
+    return redirect(url_for('index'))
+
+@app.route('/uber/import', methods=['POST'])
+@login_required
+def uber_import():
+    """Importuje historię przejazdów z Uber"""
+    if not current_user.uber_access_token:
+        flash('Najpierw połącz konto Uber', 'warning')
+        return redirect(url_for('index'))
+    
+    try:
+        client = UberRidesClient(session_data={
+            'access_token': current_user.uber_access_token
+        })
+        
+        response = client.get_user_activity()
+        trips = response.json.get('history', [])
+        
+        imported_count = 0
+        for trip in trips[:10]:
+            try:
+                start_time = datetime.datetime.fromisoformat(trip['start_time'].replace('Z', '+00:00'))
+                end_time = datetime.datetime.fromisoformat(trip['end_time'].replace('Z', '+00:00'))
+                
+                duration_seconds = (end_time - start_time).total_seconds()
+                duration_minutes = duration_seconds / 60
+                
+                distance_km = trip.get('distance', 0)
+                fare = trip.get('fare', {}).get('display', '0')
+                fare_amount = float(fare.replace('PLN', '').replace('zł', '').strip())
+                
+                dane_kursu = {
+                    'Data': start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'Dystans kursu': f"{distance_km:.2f} km",
+                    'Czas kursu': f"{duration_minutes:.0f} min",
+                    'Zarobek': f"{fare_amount:.2f} zł",
+                    'Koszt paliwa': '0 zł',
+                    'Zysk netto': f"{fare_amount:.2f} zł",
+                    'Stawka godzinowa': f"{(fare_amount / (duration_minutes / 60)):.2f} zł/h" if duration_minutes > 0 else '0 zł/h',
+                    'Platforma': 'Uber'
+                }
+                
+                zapisz_do_pliku(dane_kursu)
+                imported_count += 1
+            except Exception:
+                continue
+        
+        flash(f'Zaimportowano {imported_count} przejazdów z Uber!', 'success')
+        return redirect(url_for('statystyki'))
+        
+    except Exception as e:
+        flash(f'Błąd podczas importu z Uber: {str(e)}', 'danger')
+        return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
