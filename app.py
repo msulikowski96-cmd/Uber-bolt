@@ -8,7 +8,9 @@ from database import db, User, get_user_folder, init_db
 from forms import LoginForm, RegistrationForm
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "taxi-calculator-secret-key-2025-auth")
+app.secret_key = os.environ.get("SESSION_SECRET")
+if not app.secret_key:
+    raise ValueError("SESSION_SECRET environment variable must be set")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")

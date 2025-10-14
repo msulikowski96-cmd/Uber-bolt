@@ -6,6 +6,12 @@ Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers
 
 ## Recent Changes (October 2025)
 
+- **AI Asystent (NEW!)** - Intelligent ride analysis powered by OpenRouter AI with personalized recommendations for drivers:
+  - **Time pattern analysis** - Discover best days and hours to maximize earnings
+  - **Earnings optimization** - Get specific advice on how to increase hourly rates
+  - **Platform comparison** - AI-powered insights on which platforms are most profitable
+  - **Custom questions** - Ask AI anything about your ride data
+  - Uses OpenRouter API with GPT-3.5-turbo for cost-effective analysis
 - **Ride detail modal** - Click on any ride in history table to view complete details (pickup distance/time, ride distance/time, full financial breakdown, platform, rating) in a Bootstrap modal
 - **Ride history table** - New dedicated page showing all rides in a filterable table with platform badges, date filters, and mobile-responsive design
 - **Mobile-friendly navigation** - Added hamburger menu with overlay sidebar for better mobile experience across all pages
