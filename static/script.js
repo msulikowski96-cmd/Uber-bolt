@@ -228,89 +228,6 @@ function wczytajMotyw() {
     }
 }
 
-// Sprawdzanie statusu połączenia z Uber
-let uberConnected = false;
-
-async function checkUberStatus() {
-    try {
-        const response = await fetch('/uber/status');
-        const data = await response.json();
-        uberConnected = data.connected;
-        
-        const btn = document.getElementById('uber-btn');
-        const btnText = document.getElementById('uber-btn-text');
-        
-        if (uberConnected) {
-            btnText.textContent = 'Synchronizuj Uber';
-            btn.className = 'btn btn-outline-success w-100 mb-2';
-        } else {
-            btnText.textContent = 'Połącz z Uber';
-            btn.className = 'btn btn-outline-warning w-100 mb-2';
-        }
-    } catch (error) {
-        console.error('Błąd sprawdzania statusu Uber:', error);
-    }
-}
-
-// Obsługa kliknięcia przycisku Uber
-function handleUberClick() {
-    if (uberConnected) {
-        syncUber();
-    } else {
-        window.location.href = '/uber/authorize';
-    }
-}
-
-// Synchronizacja z Uber API
-async function syncUber() {
-    const days = prompt('Ile dni wstecz chcesz zaimportować kursy? (domyślnie 30)', '30');
-    
-    if (!days) return;
-    
-    const loadingAlert = document.createElement('div');
-    loadingAlert.className = 'alert alert-info mt-3';
-    loadingAlert.innerHTML = '<strong><i class="bi bi-cloud-download"></i> Synchronizacja w toku...</strong> Pobieranie kursów z Uber API...';
-    document.querySelector('.main-content').prepend(loadingAlert);
-    
-    try {
-        const response = await fetch('/uber/sync', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ days: parseInt(days) })
-        });
-        
-        const result = await response.json();
-        loadingAlert.remove();
-        
-        if (result.success) {
-            const successAlert = document.createElement('div');
-            successAlert.className = 'alert alert-success mt-3';
-            successAlert.innerHTML = `<strong><i class="bi bi-check-circle"></i> Sukces!</strong> ${result.message}`;
-            document.querySelector('.main-content').prepend(successAlert);
-            
-            setTimeout(() => successAlert.remove(), 5000);
-            
-            await wczytajCele();
-        } else {
-            const errorAlert = document.createElement('div');
-            errorAlert.className = 'alert alert-danger mt-3';
-            errorAlert.innerHTML = `<strong><i class="bi bi-x-circle"></i> Błąd!</strong> ${result.message}`;
-            document.querySelector('.main-content').prepend(errorAlert);
-            
-            setTimeout(() => errorAlert.remove(), 5000);
-            
-            if (result.needs_reconnect) {
-                await checkUberStatus();
-            }
-        }
-    } catch (error) {
-        loadingAlert.remove();
-        alert('Wystąpił błąd podczas synchronizacji: ' + error.message);
-    }
-}
-
 // Rejestracja Service Workera
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/static/service-worker.js')
@@ -326,9 +243,6 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('load', async function() {
     // Wczytaj motyw
     wczytajMotyw();
-    
-    // Sprawdź status połączenia z Uber
-    await checkUberStatus();
     
     // Wczytaj cele
     await wczytajCele();
