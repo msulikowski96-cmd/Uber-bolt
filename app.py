@@ -1154,7 +1154,7 @@ Odpowiedz konkretnie i praktycznie (max 200 słów). Używaj danych użytkownika
                 'HTTP-Referer': request.host_url,
             },
             json={
-                'model': 'openai/gpt-3.5-turbo',
+                'model': 'qwen/qwen2.5-vl-72b-instruct:free',
                 'messages': [
                     {
                         'role': 'user',
