@@ -30,8 +30,11 @@ async function wczytajCele() {
         const dane = await response.json();
         
         if (dane.cele) {
-            document.getElementById('input-cel-dzienny').value = dane.cele.cel_dzienny;
-            document.getElementById('input-min-stawka').value = dane.cele.min_stawka;
+            const inputCelDzienny = document.getElementById('input-cel-dzienny');
+            const inputMinStawka = document.getElementById('input-min-stawka');
+            
+            if (inputCelDzienny) inputCelDzienny.value = dane.cele.cel_dzienny;
+            if (inputMinStawka) inputMinStawka.value = dane.cele.min_stawka;
         }
         
         if (dane.postep) {
@@ -43,20 +46,27 @@ async function wczytajCele() {
 }
 
 function aktualizujPostep(postep) {
-    document.getElementById('cel-dzienny').textContent = postep.cel.toFixed(2) + ' zł';
-    document.getElementById('postep-kwota').textContent = postep.postep.toFixed(2) + ' zł';
-    document.getElementById('cel-kwota').textContent = postep.cel.toFixed(2) + ' zł';
-    document.getElementById('pozostalo-kwota').textContent = postep.pozostalo.toFixed(2) + ' zł';
-    document.getElementById('progress-bar').style.width = postep.procent.toFixed(1) + '%';
-    
-    // Zmiana koloru paska postępu
+    const celDzienny = document.getElementById('cel-dzienny');
+    const postepKwota = document.getElementById('postep-kwota');
+    const celKwota = document.getElementById('cel-kwota');
+    const pozostaloKwota = document.getElementById('pozostalo-kwota');
     const progressBar = document.getElementById('progress-bar');
-    if (postep.procent >= 100) {
-        progressBar.style.background = 'linear-gradient(90deg, #10b981, #059669)';
-    } else if (postep.procent >= 75) {
-        progressBar.style.background = 'linear-gradient(90deg, var(--taxi-yellow), #f59e0b)';
-    } else {
-        progressBar.style.background = 'linear-gradient(90deg, #667eea, #764ba2)';
+    
+    if (celDzienny) celDzienny.textContent = postep.cel.toFixed(2) + ' zł';
+    if (postepKwota) postepKwota.textContent = postep.postep.toFixed(2) + ' zł';
+    if (celKwota) celKwota.textContent = postep.cel.toFixed(2) + ' zł';
+    if (pozostaloKwota) pozostaloKwota.textContent = postep.pozostalo.toFixed(2) + ' zł';
+    if (progressBar) {
+        progressBar.style.width = postep.procent.toFixed(1) + '%';
+        
+        // Zmiana koloru paska postępu
+        if (postep.procent >= 100) {
+            progressBar.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+        } else if (postep.procent >= 75) {
+            progressBar.style.background = 'linear-gradient(90deg, var(--taxi-yellow), #f59e0b)';
+        } else {
+            progressBar.style.background = 'linear-gradient(90deg, #667eea, #764ba2)';
+        }
     }
 }
 
@@ -108,62 +118,65 @@ function pokazPowiadomienia(powiadomienia) {
     });
 }
 
-document.getElementById('kalkulator-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const data = {};
-    formData.forEach((value, key) => {
-        data[key] = value;
-    });
-    
-    try {
-        const response = await fetch('/oblicz', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
+const kalkulatorForm = document.getElementById('kalkulator-form');
+if (kalkulatorForm) {
+    kalkulatorForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
         });
         
-        const wynik = await response.json();
-        
-        // Aktualizacja wyników
-        document.getElementById('dystans_calkowity').textContent = wynik.dystans_calkowity + ' km';
-        document.getElementById('czas_calkowity_h').textContent = wynik.czas_calkowity_h + ' h';
-        document.getElementById('koszt_paliwa').textContent = wynik.koszt_paliwa + ' zł';
-        document.getElementById('zarobek_dla_kierowcy').textContent = wynik.zarobek_dla_kierowcy + ' zł';
-        document.getElementById('zysk_netto').textContent = wynik.zysk_netto + ' zł';
-        document.getElementById('stawka_godzinowa').textContent = wynik.stawka_godzinowa + ' zł/h';
-        document.getElementById('ocena-text').textContent = wynik.ocena;
-        
-        // Aktualizacja średniej dnia
-        document.getElementById('srednia-dnia').textContent = wynik.srednia_dnia + ' zł/h';
-        
-        // Aktualizacja postępu do celu
-        if (wynik.postep) {
-            aktualizujPostep(wynik.postep);
+        try {
+            const response = await fetch('/oblicz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const wynik = await response.json();
+            
+            // Aktualizacja wyników
+            document.getElementById('dystans_calkowity').textContent = wynik.dystans_calkowity + ' km';
+            document.getElementById('czas_calkowity_h').textContent = wynik.czas_calkowity_h + ' h';
+            document.getElementById('koszt_paliwa').textContent = wynik.koszt_paliwa + ' zł';
+            document.getElementById('zarobek_dla_kierowcy').textContent = wynik.zarobek_dla_kierowcy + ' zł';
+            document.getElementById('zysk_netto').textContent = wynik.zysk_netto + ' zł';
+            document.getElementById('stawka_godzinowa').textContent = wynik.stawka_godzinowa + ' zł/h';
+            document.getElementById('ocena-text').textContent = wynik.ocena;
+            
+            // Aktualizacja średniej dnia
+            document.getElementById('srednia-dnia').textContent = wynik.srednia_dnia + ' zł/h';
+            
+            // Aktualizacja postępu do celu
+            if (wynik.postep) {
+                aktualizujPostep(wynik.postep);
+            }
+            
+            // Pokazanie powiadomień
+            if (wynik.powiadomienia && wynik.powiadomienia.length > 0) {
+                pokazPowiadomienia(wynik.powiadomienia);
+            }
+            
+            // Zmiana koloru alertu
+            const alertDiv = document.getElementById('ocena-alert');
+            alertDiv.className = 'alert alert-' + wynik.ocena_klasa;
+            
+            // Pokazanie wyników z animacją
+            const wynikiDiv = document.getElementById('wyniki');
+            wynikiDiv.style.display = 'block';
+            wynikiDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+        } catch (error) {
+            console.error('Błąd:', error);
+            alert('Wystąpił błąd podczas obliczania!');
         }
-        
-        // Pokazanie powiadomień
-        if (wynik.powiadomienia && wynik.powiadomienia.length > 0) {
-            pokazPowiadomienia(wynik.powiadomienia);
-        }
-        
-        // Zmiana koloru alertu
-        const alertDiv = document.getElementById('ocena-alert');
-        alertDiv.className = 'alert alert-' + wynik.ocena_klasa;
-        
-        // Pokazanie wyników z animacją
-        const wynikiDiv = document.getElementById('wyniki');
-        wynikiDiv.style.display = 'block';
-        wynikiDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
-    } catch (error) {
-        console.error('Błąd:', error);
-        alert('Wystąpił błąd podczas obliczania!');
-    }
-});
+    });
+}
 
 // PWA Installation
 let deferredPrompt;
@@ -244,17 +257,22 @@ window.addEventListener('load', async function() {
     // Wczytaj motyw
     wczytajMotyw();
     
-    // Wczytaj cele
-    await wczytajCele();
+    // Wczytaj cele (tylko jeśli jesteśmy na stronie z celami)
+    if (document.getElementById('cel-dzienny')) {
+        await wczytajCele();
+    }
     
-    // Wczytaj średnią dnia
-    try {
-        const response = await fetch('/srednia_dnia');
-        const dane = await response.json();
-        if (dane.srednia_dnia !== 'Brak danych') {
-            document.getElementById('srednia-dnia').textContent = dane.srednia_dnia + ' zł/h';
+    // Wczytaj średnią dnia (tylko jeśli element istnieje)
+    const sredniaDniaElement = document.getElementById('srednia-dnia');
+    if (sredniaDniaElement) {
+        try {
+            const response = await fetch('/srednia_dnia');
+            const dane = await response.json();
+            if (dane.srednia_dnia !== 'Brak danych') {
+                sredniaDniaElement.textContent = dane.srednia_dnia + ' zł/h';
+            }
+        } catch (error) {
+            console.log('Nie udało się wczytać średniej dnia');
         }
-    } catch (error) {
-        console.log('Nie udało się wczytać średniej dnia');
     }
 });
