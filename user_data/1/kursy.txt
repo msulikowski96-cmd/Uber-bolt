@@ -62,5 +62,21 @@ Stawka godzinowa: 3.23 zł/h
 Ocena: ❌ Kurs nieopłacalny.
 ----------------------------------------
 
-📊 Podsumowanie dnia 2025-10-14 - średnia stawka godzinowa: 2.56 zł/h
+========================================
+
+[2025-10-14 07:24:55]
+Platforma: Uber
+Dystans dojazdu (km): 5.00
+Czas dojazdu (min): 10
+Dystans z klientem (km): 7.00
+Czas kursu (min): 18
+Kwota (z napiwkiem): 28.00 zł
+Procent dla kierowcy: 10%
+Koszt paliwa: 1.41 zł
+Zysk netto: 1.39 zł
+Stawka godzinowa: 2.98 zł/h
+Ocena: ❌ Kurs nieopłacalny.
+----------------------------------------
+
+📊 Podsumowanie dnia 2025-10-14 - średnia stawka godzinowa: 2.66 zł/h
 ========================================
