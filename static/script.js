@@ -228,6 +228,39 @@ function wczytajMotyw() {
     }
 }
 
+// Sprawdzanie statusu połączenia z Uber
+let uberConnected = false;
+
+async function checkUberStatus() {
+    try {
+        const response = await fetch('/uber/status');
+        const data = await response.json();
+        uberConnected = data.connected;
+        
+        const btn = document.getElementById('uber-btn');
+        const btnText = document.getElementById('uber-btn-text');
+        
+        if (uberConnected) {
+            btnText.textContent = 'Synchronizuj Uber';
+            btn.className = 'btn btn-outline-success w-100 mb-2';
+        } else {
+            btnText.textContent = 'Połącz z Uber';
+            btn.className = 'btn btn-outline-warning w-100 mb-2';
+        }
+    } catch (error) {
+        console.error('Błąd sprawdzania statusu Uber:', error);
+    }
+}
+
+// Obsługa kliknięcia przycisku Uber
+function handleUberClick() {
+    if (uberConnected) {
+        syncUber();
+    } else {
+        window.location.href = '/uber/authorize';
+    }
+}
+
 // Synchronizacja z Uber API
 async function syncUber() {
     const days = prompt('Ile dni wstecz chcesz zaimportować kursy? (domyślnie 30)', '30');
@@ -289,6 +322,9 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('load', async function() {
     // Wczytaj motyw
     wczytajMotyw();
+    
+    // Sprawdź status połączenia z Uber
+    await checkUberStatus();
     
     // Wczytaj cele
     await wczytajCele();
