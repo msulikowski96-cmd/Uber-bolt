@@ -1,0 +1,318 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI Asystent - inteligentna analiza kursów taxi">
+    <meta name="theme-color" content="#667eea">
+    <title>🤖 AI Asystent - Taxi Calculator</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <button class="hamburger-btn" onclick="toggleSidebar()">
+            <i class="bi bi-list"></i>
+        </button>
+        <div class="mobile-logo">
+            <i class="bi bi-robot"></i>
+            <span>AI Asystent</span>
+        </div>
+    </div>
+
+    <!-- Overlay dla mobilnego menu -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 sidebar" id="sidebar">
+                <button class="sidebar-close-btn" onclick="closeSidebar()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                
+                <div class="logo-section">
+                    <i class="bi bi-taxi-front taxi-icon"></i>
+                    <h3 class="mt-3">Taxi Calculator</h3>
+                    <p class="text-muted">Kalkulator opłacalności</p>
+                    <hr style="border-color: rgba(255,255,255,0.2);">
+                    <p class="mb-0"><i class="bi bi-person-circle"></i> {{ current_user.email }}</p>
+                    <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger mt-2 w-100">
+                        <i class="bi bi-box-arrow-right"></i> Wyloguj
+                    </a>
+                </div>
+                <div class="mt-4">
+                    <a href="/" class="btn btn-outline-light w-100 mb-2">
+                        <i class="bi bi-calculator"></i> Kalkulator
+                    </a>
+                    <a href="/statystyki" class="btn btn-outline-light w-100 mb-2">
+                        <i class="bi bi-graph-up"></i> Statystyki
+                    </a>
+                    <a href="/platformy" class="btn btn-outline-light w-100 mb-2">
+                        <i class="bi bi-phone"></i> Porównaj platformy
+                    </a>
+                    <a href="/historia" class="btn btn-outline-light w-100 mb-2">
+                        <i class="bi bi-clock-history"></i> Historia kursów
+                    </a>
+                    <a href="/raporty" class="btn btn-outline-light w-100 mb-2">
+                        <i class="bi bi-file-earmark-bar-graph"></i> Raporty i Finanse
+                    </a>
+                    <a href="/ai-asystent" class="btn btn-warning w-100 mb-2">
+                        <i class="bi bi-robot"></i> AI Asystent
+                    </a>
+                </div>
+                
+                <!-- Info o AI -->
+                <div class="stats-section">
+                    <h5><i class="bi bi-lightbulb"></i> O AI Asysteńcie</h5>
+                    <p style="font-size: 0.9rem;">Inteligentna analiza Twoich kursów z personalizowanymi rekomendacjami</p>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 main-content">
+                <div class="header-section">
+                    <h1><i class="bi bi-robot"></i> AI Asystent - Inteligentna Analiza Kursów</h1>
+                    <p class="lead">Pozwól AI przeanalizować Twoje dane i otrzymaj personalizowane rekomendacje jak zwiększyć zarobki</p>
+                </div>
+
+                <!-- Karty z opcjami analizy -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-clock-history text-primary"></i> Analiza wzorców czasowych</h5>
+                                <p class="card-text">Odkryj, w jakich godzinach i dniach tygodnia zarabiasz najlepiej</p>
+                                <button class="btn btn-primary w-100" onclick="analizujWzorce()">
+                                    <i class="bi bi-search"></i> Analizuj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-graph-up text-success"></i> Optymalizacja zarobków</h5>
+                                <p class="card-text">Otrzymaj konkretne porady jak zwiększyć stawkę godzinową</p>
+                                <button class="btn btn-success w-100" onclick="analizujOptymalizacje()">
+                                    <i class="bi bi-lightbulb"></i> Optymalizuj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-trophy text-warning"></i> Najlepsze platformy</h5>
+                                <p class="card-text">Porównaj opłacalność platform i zobacz, gdzie zarabiasz więcej</p>
+                                <button class="btn btn-warning w-100" onclick="analizujPlatformy()">
+                                    <i class="bi bi-bar-chart"></i> Porównaj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-chat-dots text-info"></i> Zadaj pytanie AI</h5>
+                                <p class="card-text">Zapytaj AI o cokolwiek związanego z Twoimi kursami</p>
+                                <button class="btn btn-info w-100" onclick="pokazChatAI()">
+                                    <i class="bi bi-question-circle"></i> Zapytaj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wyniki analizy -->
+                <div id="analiza-wyniki" style="display: none;">
+                    <div class="card">
+                        <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-stars"></i> Wyniki Analizy AI</h5>
+                            <button class="btn btn-sm btn-light" onclick="zamknijWyniki()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="loading-spinner" class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Ładowanie...</span>
+                                </div>
+                                <p class="mt-3 text-muted">AI analizuje Twoje dane...</p>
+                            </div>
+                            <div id="analiza-content" style="display: none;">
+                                <!-- Tutaj pojawią się wyniki -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat AI Modal -->
+                <div class="modal fade" id="chatAIModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-gradient text-white">
+                                <h5 class="modal-title"><i class="bi bi-chat-dots"></i> Zapytaj AI Asystenta</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="ai-question" class="form-label">Twoje pytanie:</label>
+                                    <textarea class="form-control" id="ai-question" rows="3" 
+                                        placeholder="Np. 'Kiedy powinienem jeździć żeby zarobić więcej?' lub 'Która platforma jest dla mnie najbardziej opłacalna?'"></textarea>
+                                </div>
+                                <div id="chat-loading" class="text-center py-3" style="display: none;">
+                                    <div class="spinner-border text-primary" role="status"></div>
+                                    <p class="mt-2 text-muted">AI myśli...</p>
+                                </div>
+                                <div id="chat-answer" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <h6><i class="bi bi-robot"></i> Odpowiedź AI:</h6>
+                                        <div id="chat-answer-text"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                                <button type="button" class="btn btn-primary" onclick="zapytajAI()">
+                                    <i class="bi bi-send"></i> Wyślij pytanie
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        async function analizujWzorce() {
+            pokazWyniki();
+            try {
+                const response = await fetch('/api/ai-analiza', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ typ: 'wzorce' })
+                });
+                const data = await response.json();
+                wyswietlWyniki(data.analiza);
+            } catch (error) {
+                console.error('Błąd:', error);
+                wyswietlBlad('Nie udało się pobrać analizy. Spróbuj ponownie.');
+            }
+        }
+
+        async function analizujOptymalizacje() {
+            pokazWyniki();
+            try {
+                const response = await fetch('/api/ai-analiza', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ typ: 'optymalizacja' })
+                });
+                const data = await response.json();
+                wyswietlWyniki(data.analiza);
+            } catch (error) {
+                console.error('Błąd:', error);
+                wyswietlBlad('Nie udało się pobrać analizy. Spróbuj ponownie.');
+            }
+        }
+
+        async function analizujPlatformy() {
+            pokazWyniki();
+            try {
+                const response = await fetch('/api/ai-analiza', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ typ: 'platformy' })
+                });
+                const data = await response.json();
+                wyswietlWyniki(data.analiza);
+            } catch (error) {
+                console.error('Błąd:', error);
+                wyswietlBlad('Nie udało się pobrać analizy. Spróbuj ponownie.');
+            }
+        }
+
+        function pokazChatAI() {
+            const modal = new bootstrap.Modal(document.getElementById('chatAIModal'));
+            document.getElementById('ai-question').value = '';
+            document.getElementById('chat-answer').style.display = 'none';
+            modal.show();
+        }
+
+        async function zapytajAI() {
+            const question = document.getElementById('ai-question').value.trim();
+            if (!question) {
+                alert('Wpisz pytanie!');
+                return;
+            }
+
+            document.getElementById('chat-loading').style.display = 'block';
+            document.getElementById('chat-answer').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/ai-analiza', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ typ: 'pytanie', pytanie: question })
+                });
+                const data = await response.json();
+                
+                document.getElementById('chat-loading').style.display = 'none';
+                document.getElementById('chat-answer').style.display = 'block';
+                document.getElementById('chat-answer-text').innerHTML = formatujOdpowiedz(data.analiza);
+            } catch (error) {
+                console.error('Błąd:', error);
+                document.getElementById('chat-loading').style.display = 'none';
+                alert('Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.');
+            }
+        }
+
+        function pokazWyniki() {
+            document.getElementById('analiza-wyniki').style.display = 'block';
+            document.getElementById('loading-spinner').style.display = 'block';
+            document.getElementById('analiza-content').style.display = 'none';
+            // Scroll do wyników
+            document.getElementById('analiza-wyniki').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function wyswietlWyniki(analiza) {
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('analiza-content').style.display = 'block';
+            document.getElementById('analiza-content').innerHTML = formatujOdpowiedz(analiza);
+        }
+
+        function wyswietlBlad(wiadomosc) {
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('analiza-content').style.display = 'block';
+            document.getElementById('analiza-content').innerHTML = 
+                `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> ${wiadomosc}</div>`;
+        }
+
+        function zamknijWyniki() {
+            document.getElementById('analiza-wyniki').style.display = 'none';
+        }
+
+        function formatujOdpowiedz(tekst) {
+            // Konwertuj markdown-like formatting na HTML
+            return tekst
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/^(.+)$/, '<p>$1</p>');
+        }
+    </script>
+</body>
+</html>
