@@ -980,5 +980,204 @@ def api_heatmap_rentownosci():
         "top_sloty": top_3
     })
 
+@app.route('/ai-asystent')
+@login_required
+def ai_asystent():
+    """Strona AI Asystenta"""
+    return render_template('ai_asystent.html')
+
+@app.route('/api/ai-analiza', methods=['POST'])
+@login_required
+def ai_analiza():
+    """Endpoint do analizy danych przez AI"""
+    import json
+    import requests
+    
+    data = request.json
+    typ = data.get('typ')
+    pytanie = data.get('pytanie', '')
+    
+    # Pobierz dane kursów użytkownika
+    kursy = wczytaj_historie_kursow()
+    
+    if not kursy:
+        return jsonify({
+            'analiza': 'Nie masz jeszcze żadnych zapisanych kursów. Zacznij dodawać kursy w kalkulatorze, aby AI mogło przeanalizować Twoje dane.'
+        })
+    
+    # Przygotuj podsumowanie danych dla AI
+    ile_kursow = len(kursy)
+    platformy = {}
+    suma_zysk = 0
+    suma_stawka = 0
+    stawki_lista = []
+    
+    for kurs in kursy:
+        platforma = kurs.get('Platforma', 'Inne')
+        if platforma not in platformy:
+            platformy[platforma] = {'liczba': 0, 'zysk': 0, 'stawki': []}
+        platformy[platforma]['liczba'] += 1
+        
+        zysk_str = kurs.get('Zysk netto', '0').replace('zł', '').strip()
+        stawka_str = kurs.get('Stawka godzinowa', '0').replace('zł/h', '').strip()
+        
+        try:
+            zysk = float(zysk_str)
+            suma_zysk += zysk
+            platformy[platforma]['zysk'] += zysk
+        except:
+            pass
+        
+        try:
+            stawka = float(stawka_str)
+            suma_stawka += stawka
+            stawki_lista.append(stawka)
+            platformy[platforma]['stawki'].append(stawka)
+        except:
+            pass
+    
+    srednia_stawka = suma_stawka / len(stawki_lista) if stawki_lista else 0
+    
+    # Analiza czasowa
+    from collections import defaultdict
+    import datetime as dt
+    
+    zarobki_dzien_tygodnia = defaultdict(list)
+    zarobki_godzina = defaultdict(list)
+    
+    for kurs in kursy:
+        try:
+            data_czas = kurs.get('data_czas', '')
+            zysk_str = kurs.get('Zysk netto', '0').replace('zł', '').strip()
+            zysk = float(zysk_str)
+            
+            data_obj = dt.datetime.strptime(data_czas, "%Y-%m-%d %H:%M:%S")
+            dzien_tygodnia = data_obj.weekday()
+            godzina = data_obj.hour
+            
+            zarobki_dzien_tygodnia[dzien_tygodnia].append(zysk)
+            zarobki_godzina[godzina].append(zysk)
+        except:
+            continue
+    
+    # Tworzenie promptów dla różnych typów analizy
+    if typ == 'wzorce':
+        # Znajdź najlepsze dni i godziny
+        najlepszy_dzien = max(zarobki_dzien_tygodnia.items(), 
+                             key=lambda x: sum(x[1])/len(x[1]) if x[1] else 0) if zarobki_dzien_tygodnia else (0, [0])
+        najlepsza_godzina = max(zarobki_godzina.items(), 
+                               key=lambda x: sum(x[1])/len(x[1]) if x[1] else 0) if zarobki_godzina else (0, [0])
+        
+        dni_pl = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota', 'niedziela']
+        
+        prompt = f"""Jesteś ekspertem w analizie danych dla kierowców taxi. Przeanalizuj dane użytkownika i podaj konkretne wzorce czasowe.
+
+DANE UŻYTKOWNIKA:
+- Liczba kursów: {ile_kursow}
+- Średnia stawka godzinowa: {srednia_stawka:.2f} zł/h
+- Całkowity zysk: {suma_zysk:.2f} zł
+- Najlepszy dzień tygodnia: {dni_pl[najlepszy_dzien[0]]} (średni zysk: {sum(najlepszy_dzien[1])/len(najlepszy_dzien[1]):.2f} zł)
+- Najlepsza godzina: {najlepsza_godzina[0]}:00 (średni zysk: {sum(najlepsza_godzina[1])/len(najlepsza_godzina[1]):.2f} zł)
+
+Napisz krótką, konkretną analizę wzorców czasowych (max 200 słów). Podaj:
+1. W które dni tygodnia zarabia najlepiej
+2. W jakich godzinach najlepiej jeździć
+3. Konkretne rekomendacje kiedy jeździć
+
+Pisz po polsku, bezpośrednio do kierowcy. Używaj konkretnych liczb z danych."""
+
+    elif typ == 'optymalizacja':
+        prompt = f"""Jesteś ekspertem w optymalizacji zarobków kierowców taxi. Przeanalizuj dane i podaj konkretne porady.
+
+DANE UŻYTKOWNIKA:
+- Liczba kursów: {ile_kursow}
+- Średnia stawka godzinowa: {srednia_stawka:.2f} zł/h
+- Platformy: {', '.join([f"{p} ({dane['liczba']} kursów)" for p, dane in platformy.items()])}
+
+Napisz konkretne porady jak zwiększyć stawkę godzinową (max 200 słów). Podaj:
+1. Co robisz dobrze (na podstawie danych)
+2. Co możesz poprawić
+3. 3 konkretne działania do wdrożenia od jutra
+
+Pisz po polsku, bezpośrednio do kierowcy. Używaj konkretnych liczb z danych."""
+
+    elif typ == 'platformy':
+        platformy_info = []
+        for p, dane in platformy.items():
+            srednia_p = sum(dane['stawki'])/len(dane['stawki']) if dane['stawki'] else 0
+            platformy_info.append(f"{p}: {dane['liczba']} kursów, średnia stawka {srednia_p:.2f} zł/h")
+        
+        prompt = f"""Jesteś ekspertem w porównywaniu platform taxi. Przeanalizuj dane użytkownika.
+
+DANE PLATFORM:
+{chr(10).join(['- ' + info for info in platformy_info])}
+
+Napisz porównanie platform (max 200 słów). Podaj:
+1. Która platforma jest najbardziej opłacalna dla tego kierowcy
+2. Które platformy warto ograniczyć
+3. Konkretne rekomendacje dotyczące wyboru platform
+
+Pisz po polsku, bezpośrednio do kierowcy. Używaj konkretnych liczb z danych."""
+
+    elif typ == 'pytanie':
+        # Przygotuj kontekst dla dowolnego pytania
+        prompt = f"""Jesteś ekspertem w analizie danych dla kierowców taxi. Odpowiedz na pytanie użytkownika.
+
+DANE UŻYTKOWNIKA:
+- Liczba kursów: {ile_kursow}
+- Średnia stawka godzinowa: {srednia_stawka:.2f} zł/h
+- Całkowity zysk: {suma_zysk:.2f} zł
+- Platformy: {', '.join([f"{p} ({dane['liczba']} kursów, średnia {sum(dane['stawki'])/len(dane['stawki']):.2f} zł/h)" for p, dane in platformy.items() if dane['stawki']])}
+
+PYTANIE UŻYTKOWNIKA: {pytanie}
+
+Odpowiedz konkretnie i praktycznie (max 200 słów). Używaj danych użytkownika w odpowiedzi. Pisz po polsku."""
+    
+    else:
+        return jsonify({'analiza': 'Nieznany typ analizy'})
+    
+    # Wywołaj OpenRouter API
+    try:
+        api_key = os.environ.get('OPENROUTER_API_KEY')
+        if not api_key:
+            return jsonify({
+                'analiza': 'Brak klucza API. Skonfiguruj OPENROUTER_API_KEY w ustawieniach.'
+            })
+        
+        response = requests.post(
+            'https://openrouter.ai/api/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+                'HTTP-Referer': request.host_url,
+            },
+            json={
+                'model': 'openai/gpt-3.5-turbo',
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': prompt
+                    }
+                ],
+                'max_tokens': 500,
+                'temperature': 0.7
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            analiza_text = result['choices'][0]['message']['content']
+            return jsonify({'analiza': analiza_text})
+        else:
+            return jsonify({
+                'analiza': f'Błąd API: {response.status_code}. Sprawdź klucz API i spróbuj ponownie.'
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'analiza': f'Wystąpił błąd: {str(e)}'
+        })
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
