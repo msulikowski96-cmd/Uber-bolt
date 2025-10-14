@@ -27,29 +27,56 @@ class UberDriverAPI:
         
         self.access_token = None
         
-    def authenticate(self, code=None):
+    def get_authorization_url(self, redirect_uri, state=None):
         """
-        Uwierzytelnienie OAuth 2.0 używając Client Credentials flow
+        Generuje URL do autoryzacji OAuth
         
         Args:
-            code: Kod autoryzacyjny (nieużywany w client credentials)
+            redirect_uri: URL przekierowania po autoryzacji
+            state: Opcjonalny parametr state dla bezpieczeństwa
         
         Returns:
-            bool: True jeśli sukces, False jeśli błąd
+            str: URL autoryzacji Uber
         """
-        if self.server_token:
-            self.access_token = self.server_token
-            return True
+        if self.sandbox:
+            auth_base_url = 'https://sandbox-login.uber.com/oauth/v2/authorize'
+        else:
+            auth_base_url = 'https://login.uber.com/oauth/v2/authorize'
         
+        params = {
+            'client_id': self.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': 'partner.trips partner.payments profile',
+        }
+        
+        if state:
+            params['state'] = state
+        
+        from urllib.parse import urlencode
+        return f"{auth_base_url}?{urlencode(params)}"
+    
+    def exchange_code_for_token(self, code, redirect_uri):
+        """
+        Wymienia kod autoryzacyjny na tokeny OAuth
+        
+        Args:
+            code: Kod autoryzacyjny z Uber
+            redirect_uri: Ten sam redirect_uri co użyty w authorize
+        
+        Returns:
+            dict: Dane tokenów lub None
+        """
         if not self.client_id or not self.client_secret:
             print("Brak UBER_CLIENT_ID lub UBER_CLIENT_SECRET")
-            return False
+            return None
         
         data = {
             'client_id': self.client_id,
             'client_secret': self.client_secret,
-            'grant_type': 'client_credentials',
-            'scope': 'partner.trips partner.payments profile'
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirect_uri
         }
         
         try:
@@ -57,14 +84,48 @@ class UberDriverAPI:
             response.raise_for_status()
             token_data = response.json()
             self.access_token = token_data.get('access_token')
-            return True
+            return token_data
         except requests.exceptions.HTTPError as e:
-            print(f"Błąd uwierzytelnienia HTTP: {e}")
+            print(f"Błąd wymiany kodu: {e}")
             print(f"Odpowiedź: {e.response.text}")
-            return False
+            return None
         except Exception as e:
-            print(f"Błąd uwierzytelnienia: {e}")
-            return False
+            print(f"Błąd wymiany kodu: {e}")
+            return None
+    
+    def refresh_access_token(self, refresh_token):
+        """
+        Odświeża access token używając refresh token
+        
+        Args:
+            refresh_token: Refresh token
+        
+        Returns:
+            dict: Nowe dane tokenów lub None
+        """
+        if not self.client_id or not self.client_secret:
+            return None
+        
+        data = {
+            'client_id': self.client_id,
+            'client_secret': self.client_secret,
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token
+        }
+        
+        try:
+            response = requests.post(self.auth_url, data=data)
+            response.raise_for_status()
+            token_data = response.json()
+            self.access_token = token_data.get('access_token')
+            return token_data
+        except Exception as e:
+            print(f"Błąd odświeżania tokenu: {e}")
+            return None
+    
+    def set_access_token(self, access_token):
+        """Ustawia access token manualnie"""
+        self.access_token = access_token
     
     def get_trips(self, start_date=None, end_date=None, limit=50):
         """
