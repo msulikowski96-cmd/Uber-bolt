@@ -223,6 +223,124 @@
         </div>
     </div>
 
+    <!-- Modal szczegółów kursu -->
+    <div class="modal fade" id="rideDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-gradient text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-info-circle"></i> Szczegóły kursu
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2"><i class="bi bi-clock"></i> Data i czas</h6>
+                            <p class="fs-5" id="detail-datetime">--</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2"><i class="bi bi-phone"></i> Platforma</h6>
+                            <p class="fs-5" id="detail-platform">--</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mb-3"><i class="bi bi-geo-alt"></i> Dojazd do klienta</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Dystans dojazdu</small>
+                                    <h4 class="mb-0" id="detail-pickup-distance">--</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Czas dojazdu</small>
+                                    <h4 class="mb-0" id="detail-pickup-time">--</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3"><i class="bi bi-car-front"></i> Kurs z klientem</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Dystans kursu</small>
+                                    <h4 class="mb-0" id="detail-ride-distance">--</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Czas kursu</small>
+                                    <h4 class="mb-0" id="detail-ride-time">--</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mb-3"><i class="bi bi-cash-stack"></i> Podsumowanie finansowe</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Kwota z napiwkiem</small>
+                                    <h4 class="text-primary mb-0" id="detail-amount">--</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Koszt paliwa</small>
+                                    <h4 class="text-warning mb-0" id="detail-fuel-cost">--</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Zysk netto</small>
+                                    <h4 class="text-success mb-0" id="detail-profit">--</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3" role="alert">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-speedometer"></i> Stawka godzinowa:</strong>
+                                <span class="fs-5" id="detail-hourly-rate">--</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-percent"></i> Procent dla kierowcy:</strong>
+                                <span class="fs-5" id="detail-driver-percent">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert mt-3" id="detail-rating" role="alert">
+                        <strong id="detail-rating-text">--</strong>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="container text-center">
             <span class="text-muted">© 2025 Taxi Calculator | <a href="https://www.iubenda.com/privacy-policy/04ffaacd-a4ef-4ca4-9460-a12f132b2d88" class="iubenda-nostyle iubenda-noiframe iubenda-embed iubenda-noiframe " title="Privacy Policy ">Privacy Policy</a> | <a href="https://www.iubenda.com/privacy-policy/04ffaacd-a4ef-4ca4-9460-a12f132b2d88/cookie-policy" class="iubenda-nostyle iubenda-noiframe iubenda-embed iubenda-noiframe " title="Cookie Policy ">Cookie Policy</a></span>
@@ -280,7 +398,7 @@
             table.style.display = 'table';
             emptyState.style.display = 'none';
             
-            tbody.innerHTML = rides.map(ride => {
+            tbody.innerHTML = rides.map((ride, index) => {
                 const platform = ride.Platforma || 'Inne';
                 const platformClass = getPlatformClass(platform);
                 const rateValue = parseFloat(ride['Stawka godzinowa']?.replace('zł/h', '').trim() || 0);
@@ -296,7 +414,7 @@
                 const czasCalkowity = Math.round(czasDojazdu + czasKursu);
                 
                 return `
-                    <tr>
+                    <tr style="cursor: pointer;" onclick="showRideDetails(${index})" title="Kliknij aby zobaczyć szczegóły">
                         <td><small>${formatDateTime(ride.data_czas)}</small></td>
                         <td><span class="platform-badge ${platformClass}">${platform}</span></td>
                         <td class="hide-mobile">${dystansCalkowity} km</td>
@@ -353,6 +471,55 @@
             document.getElementById('filter-platform').value = '';
             document.getElementById('filter-date').value = '';
             displayRides(allRides);
+        }
+
+        function showRideDetails(index) {
+            const ride = allRides[index];
+            if (!ride) return;
+
+            // Wypełnij modal danymi
+            document.getElementById('detail-datetime').textContent = ride.data_czas || '--';
+            
+            const platform = ride.Platforma || 'Inne';
+            const platformClass = getPlatformClass(platform);
+            document.getElementById('detail-platform').innerHTML = 
+                `<span class="platform-badge ${platformClass}">${platform}</span>`;
+
+            // Dojazd do klienta
+            document.getElementById('detail-pickup-distance').textContent = ride['Dystans dojazdu (km)'] || '--';
+            document.getElementById('detail-pickup-time').textContent = 
+                (ride['Czas dojazdu (min)'] || '--') + (ride['Czas dojazdu (min)'] ? ' min' : '');
+
+            // Kurs z klientem
+            document.getElementById('detail-ride-distance').textContent = ride['Dystans z klientem (km)'] || '--';
+            document.getElementById('detail-ride-time').textContent = 
+                (ride['Czas kursu (min)'] || '--') + (ride['Czas kursu (min)'] ? ' min' : '');
+
+            // Finanse
+            document.getElementById('detail-amount').textContent = ride['Kwota (z napiwkiem)'] || '--';
+            document.getElementById('detail-fuel-cost').textContent = ride['Koszt paliwa'] || '--';
+            document.getElementById('detail-profit').textContent = ride['Zysk netto'] || '--';
+            document.getElementById('detail-hourly-rate').textContent = ride['Stawka godzinowa'] || '--';
+            document.getElementById('detail-driver-percent').textContent = ride['Procent dla kierowcy'] || '--';
+
+            // Ocena
+            const ocena = ride['Ocena'] || 'Brak oceny';
+            document.getElementById('detail-rating-text').textContent = ocena;
+            
+            const detailRating = document.getElementById('detail-rating');
+            if (ocena.includes('bardzo opłacalny')) {
+                detailRating.className = 'alert alert-success mt-3';
+            } else if (ocena.includes('opłacalny') && !ocena.includes('nie')) {
+                detailRating.className = 'alert alert-info mt-3';
+            } else if (ocena.includes('średnio')) {
+                detailRating.className = 'alert alert-warning mt-3';
+            } else {
+                detailRating.className = 'alert alert-danger mt-3';
+            }
+
+            // Pokaż modal
+            const modal = new bootstrap.Modal(document.getElementById('rideDetailsModal'));
+            modal.show();
         }
 
         // Event listeners
