@@ -19,3 +19,4 @@ flask-sqlalchemy
 gunicorn
 psycopg2-binary
 sqlalchemy
+replit-object-storage
