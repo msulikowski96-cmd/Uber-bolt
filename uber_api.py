@@ -12,19 +12,27 @@ import json
 class UberDriverAPI:
     """Klasa do obsługi komunikacji z Uber Driver API"""
     
-    def __init__(self):
+    def __init__(self, sandbox=True):
         self.client_id = os.environ.get('UBER_CLIENT_ID')
         self.client_secret = os.environ.get('UBER_CLIENT_SECRET')
         self.server_token = os.environ.get('UBER_SERVER_TOKEN')
-        self.base_url = 'https://api.uber.com/v1.2'
+        self.sandbox = sandbox
+        
+        if sandbox:
+            self.base_url = 'https://sandbox-api.uber.com/v1.2'
+            self.auth_url = 'https://sandbox-login.uber.com/oauth/v2/token'
+        else:
+            self.base_url = 'https://api.uber.com/v1.2'
+            self.auth_url = 'https://login.uber.com/oauth/v2/token'
+        
         self.access_token = None
         
     def authenticate(self, code=None):
         """
-        Uwierzytelnienie OAuth 2.0
+        Uwierzytelnienie OAuth 2.0 używając Client Credentials flow
         
         Args:
-            code: Kod autoryzacyjny z Uber (opcjonalny dla server token)
+            code: Kod autoryzacyjny (nieużywany w client credentials)
         
         Returns:
             bool: True jeśli sukces, False jeśli błąd
@@ -32,27 +40,29 @@ class UberDriverAPI:
         if self.server_token:
             self.access_token = self.server_token
             return True
-            
-        if not code:
+        
+        if not self.client_id or not self.client_secret:
+            print("Brak UBER_CLIENT_ID lub UBER_CLIENT_SECRET")
             return False
-            
-        url = 'https://login.uber.com/oauth/v2/token'
+        
         data = {
             'client_id': self.client_id,
             'client_secret': self.client_secret,
-            'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': os.environ.get('REPLIT_DOMAINS', 'http://localhost:5000') + '/uber/callback'
+            'grant_type': 'client_credentials',
+            'scope': 'partner.trips partner.payments profile'
         }
         
         try:
-            response = requests.post(url, data=data)
+            response = requests.post(self.auth_url, data=data)
             response.raise_for_status()
             token_data = response.json()
             self.access_token = token_data.get('access_token')
+            print(f"Token otrzymany: {self.access_token[:20]}..." if self.access_token else "Brak tokenu")
             return True
         except Exception as e:
             print(f"Błąd uwierzytelnienia: {e}")
+            if hasattr(e, 'response'):
+                print(f"Odpowiedź: {e.response.text}")
             return False
     
     def get_trips(self, start_date=None, end_date=None, limit=50):
