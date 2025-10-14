@@ -1,4 +1,5 @@
-// Funkcje mobilnego menu
+
+// Funkcje mobilnego menu - globalne, aby działały z onclick w HTML
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
@@ -13,8 +14,9 @@ function closeSidebar() {
     overlay.classList.remove('active');
 }
 
-// Zamknij sidebar po kliknięciu w link (tylko na mobile)
+// Inicjalizacja po załadowaniu DOM
 document.addEventListener('DOMContentLoaded', function() {
+    // Zamknij sidebar po kliknięciu w link (tylko na mobile)
     if (window.innerWidth <= 768) {
         const sidebarLinks = document.querySelectorAll('.sidebar a');
         sidebarLinks.forEach(link => {
@@ -188,7 +190,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
     
     // Pokaż banner instalacji jeśli użytkownik nie odrzucił go wcześniej
     if (!localStorage.getItem('pwa-banner-dismissed')) {
-        document.getElementById('install-banner').style.display = 'block';
+        const banner = document.getElementById('install-banner');
+        if (banner) {
+            banner.style.display = 'block';
+        }
     }
 });
 
@@ -200,13 +205,19 @@ function zainstalujPWA() {
                 console.log('Użytkownik zainstalował PWA');
             }
             deferredPrompt = null;
-            document.getElementById('install-banner').style.display = 'none';
+            const banner = document.getElementById('install-banner');
+            if (banner) {
+                banner.style.display = 'none';
+            }
         });
     }
 }
 
 function zamknijBanner() {
-    document.getElementById('install-banner').style.display = 'none';
+    const banner = document.getElementById('install-banner');
+    if (banner) {
+        banner.style.display = 'none';
+    }
     localStorage.setItem('pwa-banner-dismissed', 'true');
 }
 
@@ -219,12 +230,12 @@ function przełączTryb() {
     body.classList.toggle('dark-mode');
     
     if (body.classList.contains('dark-mode')) {
-        icon.className = 'bi bi-sun';
-        text.textContent = 'Tryb jasny';
+        if (icon) icon.className = 'bi bi-sun';
+        if (text) text.textContent = 'Tryb jasny';
         localStorage.setItem('theme', 'dark');
     } else {
-        icon.className = 'bi bi-moon-stars';
-        text.textContent = 'Tryb ciemny';
+        if (icon) icon.className = 'bi bi-moon-stars';
+        if (text) text.textContent = 'Tryb ciemny';
         localStorage.setItem('theme', 'light');
     }
 }
