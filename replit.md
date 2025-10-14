@@ -6,6 +6,8 @@ Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers
 
 ## Recent Changes (October 2025)
 
+- **Ride history table** - New dedicated page showing all rides in a filterable table with platform badges, date filters, and mobile-responsive design
+- **Mobile-friendly navigation** - Added hamburger menu with overlay sidebar for better mobile experience across all pages
 - **Migrated to PostgreSQL** - Replaced SQLite with PostgreSQL for better scalability and production readiness
 - **Added user authentication system** - Email/password login with secure password hashing
 - **Multi-user support** - Each user has separate data files (kursy.txt and cele.txt) stored in user_data/{user_id}/
@@ -14,7 +16,7 @@ Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers
 - **Database integration** - PostgreSQL database for user management via SQLAlchemy
 - **Enhanced security** - Flask-Login for session management, bcrypt for password hashing
 - **Production deployment** - Configured for deployment with Gunicorn and environment-based secrets
-- **Code quality improvements** - Fixed unbound variable bugs in data processing functions
+- **Code quality improvements** - Fixed unbound variable bugs in data processing functions, improved JavaScript error handling
 
 ## User Preferences
 
@@ -26,7 +28,7 @@ Preferred communication style: Simple, everyday language.
 
 **Technology Stack:** Vanilla JavaScript with Bootstrap 5 for UI components and Plotly.js for data visualization.
 
-**Design Pattern:** Multi-page application (MPA) with server-side rendering. The application uses Flask's template engine (Jinja2) to render three main pages: calculator (index.html), statistics (statystyki.html), and platform comparison (platformy.html).
+**Design Pattern:** Multi-page application (MPA) with server-side rendering. The application uses Flask's template engine (Jinja2) to render main pages: calculator (index.html), statistics (statystyki.html), platform comparison (platformy.html), ride history (historia.html), and financial reports (raporty.html).
 
 **Rationale:** Chose MPA over SPA to keep the application simple and lightweight. Server-side rendering provides faster initial page loads, which is crucial for mobile users with potentially slower connections. Bootstrap provides a responsive, mobile-first framework out of the box.
 
