@@ -21,6 +21,67 @@ document.addEventListener('DOMContentLoaded', function() {
             link.addEventListener('click', closeSidebar);
         });
     }
+    
+    // Inicjalizacja formularza kalkulatora tylko jeśli istnieje
+    const kalkulatorForm = document.getElementById('kalkulator-form');
+    if (kalkulatorForm) {
+        kalkulatorForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            
+            try {
+                const response = await fetch('/oblicz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const wynik = await response.json();
+                
+                // Aktualizacja wyników
+                document.getElementById('dystans_calkowity').textContent = wynik.dystans_calkowity + ' km';
+                document.getElementById('czas_calkowity_h').textContent = wynik.czas_calkowity_h + ' h';
+                document.getElementById('koszt_paliwa').textContent = wynik.koszt_paliwa + ' zł';
+                document.getElementById('zarobek_dla_kierowcy').textContent = wynik.zarobek_dla_kierowcy + ' zł';
+                document.getElementById('zysk_netto').textContent = wynik.zysk_netto + ' zł';
+                document.getElementById('stawka_godzinowa').textContent = wynik.stawka_godzinowa + ' zł/h';
+                document.getElementById('ocena-text').textContent = wynik.ocena;
+                
+                // Aktualizacja średniej dnia
+                document.getElementById('srednia-dnia').textContent = wynik.srednia_dnia + ' zł/h';
+                
+                // Aktualizacja postępu do celu
+                if (wynik.postep) {
+                    aktualizujPostep(wynik.postep);
+                }
+                
+                // Pokazanie powiadomień
+                if (wynik.powiadomienia && wynik.powiadomienia.length > 0) {
+                    pokazPowiadomienia(wynik.powiadomienia);
+                }
+                
+                // Zmiana koloru alertu
+                const alertDiv = document.getElementById('ocena-alert');
+                alertDiv.className = 'alert alert-' + wynik.ocena_klasa;
+                
+                // Pokazanie wyników z animacją
+                const wynikiDiv = document.getElementById('wyniki');
+                wynikiDiv.style.display = 'block';
+                wynikiDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                
+            } catch (error) {
+                console.error('Błąd:', error);
+                alert('Wystąpił błąd podczas obliczania!');
+            }
+        });
+    }
 });
 
 // Funkcje obsługi celów
@@ -115,66 +176,6 @@ function pokazPowiadomienia(powiadomienia) {
         div.appendChild(strong);
         
         container.appendChild(div);
-    });
-}
-
-const kalkulatorForm = document.getElementById('kalkulator-form');
-if (kalkulatorForm) {
-    kalkulatorForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const data = {};
-        formData.forEach((value, key) => {
-            data[key] = value;
-        });
-        
-        try {
-            const response = await fetch('/oblicz', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-            
-            const wynik = await response.json();
-            
-            // Aktualizacja wyników
-            document.getElementById('dystans_calkowity').textContent = wynik.dystans_calkowity + ' km';
-            document.getElementById('czas_calkowity_h').textContent = wynik.czas_calkowity_h + ' h';
-            document.getElementById('koszt_paliwa').textContent = wynik.koszt_paliwa + ' zł';
-            document.getElementById('zarobek_dla_kierowcy').textContent = wynik.zarobek_dla_kierowcy + ' zł';
-            document.getElementById('zysk_netto').textContent = wynik.zysk_netto + ' zł';
-            document.getElementById('stawka_godzinowa').textContent = wynik.stawka_godzinowa + ' zł/h';
-            document.getElementById('ocena-text').textContent = wynik.ocena;
-            
-            // Aktualizacja średniej dnia
-            document.getElementById('srednia-dnia').textContent = wynik.srednia_dnia + ' zł/h';
-            
-            // Aktualizacja postępu do celu
-            if (wynik.postep) {
-                aktualizujPostep(wynik.postep);
-            }
-            
-            // Pokazanie powiadomień
-            if (wynik.powiadomienia && wynik.powiadomienia.length > 0) {
-                pokazPowiadomienia(wynik.powiadomienia);
-            }
-            
-            // Zmiana koloru alertu
-            const alertDiv = document.getElementById('ocena-alert');
-            alertDiv.className = 'alert alert-' + wynik.ocena_klasa;
-            
-            // Pokazanie wyników z animacją
-            const wynikiDiv = document.getElementById('wyniki');
-            wynikiDiv.style.display = 'block';
-            wynikiDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-        } catch (error) {
-            console.error('Błąd:', error);
-            alert('Wystąpił błąd podczas obliczania!');
-        }
     });
 }
 
