@@ -228,6 +228,52 @@ function wczytajMotyw() {
     }
 }
 
+// Synchronizacja z Uber API
+async function syncUber() {
+    const days = prompt('Ile dni wstecz chcesz zaimportować kursy? (domyślnie 30)', '30');
+    
+    if (!days) return;
+    
+    const loadingAlert = document.createElement('div');
+    loadingAlert.className = 'alert alert-info mt-3';
+    loadingAlert.innerHTML = '<strong><i class="bi bi-cloud-download"></i> Synchronizacja w toku...</strong> Pobieranie kursów z Uber API...';
+    document.querySelector('.main-content').prepend(loadingAlert);
+    
+    try {
+        const response = await fetch('/uber/sync', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ days: parseInt(days) })
+        });
+        
+        const result = await response.json();
+        loadingAlert.remove();
+        
+        if (result.success) {
+            const successAlert = document.createElement('div');
+            successAlert.className = 'alert alert-success mt-3';
+            successAlert.innerHTML = `<strong><i class="bi bi-check-circle"></i> Sukces!</strong> ${result.message}`;
+            document.querySelector('.main-content').prepend(successAlert);
+            
+            setTimeout(() => successAlert.remove(), 5000);
+            
+            await wczytajCele();
+        } else {
+            const errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger mt-3';
+            errorAlert.innerHTML = `<strong><i class="bi bi-x-circle"></i> Błąd!</strong> ${result.message}`;
+            document.querySelector('.main-content').prepend(errorAlert);
+            
+            setTimeout(() => errorAlert.remove(), 5000);
+        }
+    } catch (error) {
+        loadingAlert.remove();
+        alert('Wystąpił błąd podczas synchronizacji: ' + error.message);
+    }
+}
+
 // Rejestracja Service Workera
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/static/service-worker.js')
