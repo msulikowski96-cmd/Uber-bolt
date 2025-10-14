@@ -86,11 +86,10 @@ class UberDriverAPI:
             self.access_token = token_data.get('access_token')
             return token_data
         except requests.exceptions.HTTPError as e:
-            print(f"Błąd wymiany kodu: {e}")
-            print(f"Odpowiedź: {e.response.text}")
+            print(f"Błąd wymiany kodu HTTP {e.response.status_code}")
             return None
         except Exception as e:
-            print(f"Błąd wymiany kodu: {e}")
+            print(f"Błąd wymiany kodu: {type(e).__name__}")
             return None
     
     def refresh_access_token(self, refresh_token):
@@ -119,8 +118,11 @@ class UberDriverAPI:
             token_data = response.json()
             self.access_token = token_data.get('access_token')
             return token_data
+        except requests.exceptions.HTTPError as e:
+            print(f"Błąd odświeżania tokenu HTTP {e.response.status_code}")
+            return None
         except Exception as e:
-            print(f"Błąd odświeżania tokenu: {e}")
+            print(f"Błąd odświeżania tokenu: {type(e).__name__}")
             return None
     
     def set_access_token(self, access_token):
@@ -168,11 +170,10 @@ class UberDriverAPI:
             data = response.json()
             return data.get('trips', [])
         except requests.exceptions.HTTPError as e:
-            print(f"Błąd HTTP: {e}")
-            print(f"Odpowiedź: {e.response.text}")
+            print(f"Błąd HTTP pobierania kursów: {e.response.status_code}")
             return None
         except Exception as e:
-            print(f"Błąd pobierania kursów: {e}")
+            print(f"Błąd pobierania kursów: {type(e).__name__}")
             return None
     
     def get_trip_details(self, trip_id):

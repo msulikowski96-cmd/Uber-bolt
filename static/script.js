@@ -300,6 +300,10 @@ async function syncUber() {
             document.querySelector('.main-content').prepend(errorAlert);
             
             setTimeout(() => errorAlert.remove(), 5000);
+            
+            if (result.needs_reconnect) {
+                await checkUberStatus();
+            }
         }
     } catch (error) {
         loadingAlert.remove();

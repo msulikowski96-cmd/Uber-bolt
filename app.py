@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 from urllib.parse import urlparse, urljoin
@@ -929,7 +929,6 @@ def uber_authorize():
     
     import secrets
     state = secrets.token_urlsafe(32)
-    from flask import session
     session['uber_oauth_state'] = state
     
     auth_url = uber.get_authorization_url(redirect_uri, state)
@@ -939,8 +938,6 @@ def uber_authorize():
 @login_required
 def uber_callback():
     """Odbiera kod autoryzacyjny z Uber i zapisuje tokeny"""
-    from flask import session
-    
     code = request.args.get('code')
     state = request.args.get('state')
     error = request.args.get('error')
@@ -1033,10 +1030,19 @@ def uber_sync():
                     )
                     token = UberToken.get_by_user_id(current_user.id)
                 else:
+                    UberToken.delete_by_user_id(current_user.id)
                     return jsonify({
                         'success': False,
-                        'message': 'Token wygasł - połącz ponownie z Uber'
+                        'message': 'Token wygasł i nie można go odświeżyć. Połącz ponownie z Uber.',
+                        'needs_reconnect': True
                     })
+            else:
+                UberToken.delete_by_user_id(current_user.id)
+                return jsonify({
+                    'success': False,
+                    'message': 'Brak refresh token. Połącz ponownie z Uber.',
+                    'needs_reconnect': True
+                })
         
         data = request.json or {}
         days = data.get('days', 30)
