@@ -57,7 +57,6 @@ class UberDriverAPI:
             response.raise_for_status()
             token_data = response.json()
             self.access_token = token_data.get('access_token')
-            print(f"Token otrzymany: {self.access_token[:20]}..." if self.access_token else "Brak tokenu")
             return True
         except requests.exceptions.HTTPError as e:
             print(f"Błąd uwierzytelnienia HTTP: {e}")
