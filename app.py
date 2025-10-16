@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
-from werkzeug.security import check_password_hash
 from urllib.parse import urlparse, urljoin
 import datetime
 import os
@@ -283,11 +282,13 @@ def wczytaj_historie_kursow():
                 kurs = {}
                 data_czas = None
         # Parsuj dane kursu
-        elif ":" in linia:
-            klucz, wartosc = linia.split(":", 1)
-            klucz = klucz.strip()
-            wartosc = wartosc.strip()
-            kurs[klucz] = wartosc
+        elif ":" in linia and linia.count(":") >= 1:
+            parts = linia.split(":", 1)
+            if len(parts) == 2:
+                klucz = parts[0].strip()
+                wartosc = parts[1].strip()
+                if klucz:  # Tylko jeśli klucz nie jest pusty
+                    kurs[klucz] = wartosc
     
     # Dodaj ostatni kurs jeśli istnieje
     if kurs and data_czas:
@@ -394,10 +395,9 @@ def login():
     
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.get_by_email(form.email.data)
+        user = User.verify_password(form.email.data, form.password.data)
         
-        # Sprawdź czy użytkownik istnieje i hasło jest poprawne
-        if user and check_password_hash(user.password_hash, form.password.data):
+        if user:
             # Sprawdź czy email jest zweryfikowany
             if not user.email_verified:
                 flash('⚠️ Musisz najpierw potwierdzić swój adres email. Sprawdź swoją skrzynkę pocztową (także folder SPAM).', 'warning')
@@ -1096,7 +1096,8 @@ def api_heatmap_rentownosci():
                 dzien_tygodnia = data_obj.weekday()
                 godzina = data_obj.hour
                 rentownosc[dzien_tygodnia][godzina].append(k["zysk"])
-            except:
+            except (ValueError, KeyError, AttributeError) as e:
+                print(f"Błąd parsowania daty: {e}")
                 continue
     
     godziny = list(range(24))
