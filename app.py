@@ -11,12 +11,20 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET")
 if not app.secret_key:
     raise ValueError("SESSION_SECRET environment variable must be set")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+if len(app.secret_key) < 32:
+    raise ValueError("SESSION_SECRET must be at least 32 characters long")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
+    "pool_size": 10,
+    "max_overflow": 20,
+    "connect_args": {
+        "connect_timeout": 10,
+        "options": "-c timezone=utc"
+    }
 }
 
 # Konfiguracja Flask-Login
@@ -43,6 +51,8 @@ def is_safe_url(target):
 
 def get_user_file(filename):
     """Zwraca ścieżkę do pliku użytkownika"""
+    if not current_user.is_authenticated:
+        raise ValueError("User not authenticated")
     user_folder = get_user_folder(current_user.id)
     return f'{user_folder}/{filename}'
 

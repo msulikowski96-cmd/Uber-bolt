@@ -49,8 +49,9 @@ class User(UserMixin, db.Model):
                 f.write('cel_dzienny:300\nmin_stawka:30\n')
             
             return user
-        except Exception:
+        except Exception as e:
             db.session.rollback()
+            print(f"Error creating user: {str(e)}")
             return None
     
     @staticmethod
