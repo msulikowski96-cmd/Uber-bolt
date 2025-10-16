@@ -1,31 +1,19 @@
-# Taxi Calculator - Ride Profitability Tracker
+# Taxi Calculator - Ride Profitability Calculator
 
 ## Overview
 
-Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers to track and analyze ride profitability. The application features multi-user authentication with email/password login, allowing each driver to have their own private data. Drivers can calculate hourly rates for rides, set daily earning goals, track progress, compare platform performance (Uber, Bolt, etc.), and view detailed statistics through interactive charts. Built with Flask and designed for mobile-first usage, it provides offline capabilities and can be installed on devices as a native-like app.
+Taxi Calculator is a Progressive Web Application (PWA) designed for taxi/rideshare drivers to calculate ride profitability, track earnings, and analyze performance across multiple platforms (Uber, Bolt, etc.). The application helps drivers make informed decisions about which rides to accept by calculating net profit, hourly rates, and providing AI-powered insights.
 
-## Recent Changes (October 2025)
+**Core Features:**
+- Real-time ride profitability calculator with fuel cost analysis
+- Multi-platform comparison (Uber, Bolt, etc.)
+- Historical ride tracking and statistics
+- Daily goal setting and progress monitoring
+- AI assistant for ride analysis and recommendations
+- Financial reports and visualizations
+- Offline-capable PWA with service worker support
 
-- **AI Asystent (NEW!)** - Intelligent ride analysis powered by OpenRouter AI with personalized recommendations for drivers:
-  - **Time pattern analysis** - Discover best days and hours to maximize earnings
-  - **Earnings optimization** - Get specific advice on how to increase hourly rates
-  - **Platform comparison** - AI-powered insights on which platforms are most profitable
-  - **Custom questions** - Ask AI anything about your ride data
-  - Uses OpenRouter API with Qwen 2.5 VL 72B (free tier) for cost-effective analysis
-  - **Enhanced error handling** - 60s timeout, detailed error messages for rate limits, auth issues, and network problems
-  - **Known limitation**: Free AI model may have rate limits - if unavailable, wait 1-2 minutes and retry
-- **Ride detail modal** - Click on any ride in history table to view complete details (pickup distance/time, ride distance/time, full financial breakdown, platform, rating) in a Bootstrap modal
-- **Ride history table** - New dedicated page showing all rides in a filterable table with platform badges, date filters, and mobile-responsive design
-- **Mobile-friendly navigation** - Added hamburger menu with overlay sidebar for better mobile experience across all pages
-- **Migrated to PostgreSQL** - Replaced SQLite with PostgreSQL for better scalability and production readiness
-- **Added user authentication system** - Email/password login with secure password hashing
-- **Multi-user support** - Each user has separate data files (kursy.txt and cele.txt) stored in user_data/{user_id}/
-- **Platform comparison feature** - Track and compare profitability across different taxi platforms (Uber, Bolt, FreeNow, etc.)
-- **Shift profitability heatmap** - Interactive heatmap showing average earnings by weekday and hour with top 3 most profitable time slots recommendations
-- **Database integration** - PostgreSQL database for user management via SQLAlchemy
-- **Enhanced security** - Flask-Login for session management, bcrypt for password hashing
-- **Production deployment** - Configured for deployment with Gunicorn and environment-based secrets
-- **Code quality improvements** - Fixed unbound variable bugs in data processing functions, improved JavaScript error handling
+**Target Users:** Taxi and rideshare drivers in Poland (Polish language interface)
 
 ## User Preferences
 
@@ -35,185 +23,148 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 
-**Technology Stack:** Vanilla JavaScript with Bootstrap 5 for UI components and Plotly.js for data visualization.
+**Technology Stack:**
+- **Framework:** Flask with Jinja2 templating
+- **UI Library:** Bootstrap 5.3.0
+- **Icons:** Bootstrap Icons 1.11.0
+- **Charts/Visualizations:** Plotly 2.27.0
+- **PWA Implementation:** Service Worker with offline caching
 
-**Design Pattern:** Multi-page application (MPA) with server-side rendering. The application uses Flask's template engine (Jinja2) to render main pages: calculator (index.html), statistics (statystyki.html), platform comparison (platformy.html), ride history (historia.html), and financial reports (raporty.html).
+**Design Pattern:**
+- Server-side rendered templates with progressive enhancement
+- Mobile-first responsive design with hamburger navigation
+- Gradient-based purple/blue theme with modern card layouts
+- Offline-first approach using service worker caching
 
-**Rationale:** Chose MPA over SPA to keep the application simple and lightweight. Server-side rendering provides faster initial page loads, which is crucial for mobile users with potentially slower connections. Bootstrap provides a responsive, mobile-first framework out of the box.
+**Key UI Components:**
+- Collapsible sidebar navigation with mobile overlay
+- Calculator form with real-time validation
+- Interactive charts using Plotly for statistics
+- PWA manifest for installable app experience
 
-**PWA Implementation:** Progressive Web App features implemented via service worker (service-worker.js) using native Cache API for reliable offline functionality:
-- Precache essential files (CSS, JS, manifest, icon) on install
-- Runtime caching with cache-first strategy
-- Offline fallback to homepage for navigation requests
-- Separate caches: offline-v2 (precache) and runtime (dynamic)
-
-**Pros:** Fast offline access, installable on mobile devices, no external dependencies, reliable caching.
-**Cons:** Cache invalidation requires version updates, requires HTTPS in production.
+**Rationale:** Server-side rendering provides better SEO and initial load performance, while PWA features enable offline functionality crucial for drivers who may have intermittent connectivity.
 
 ### Backend Architecture
 
-**Framework:** Flask (Python) - Lightweight WSGI web application framework.
+**Framework:** Flask 3.1.2 (Python web framework)
 
-**Architecture Pattern:** Hybrid approach - PostgreSQL database for user authentication and file-based storage for ride data. Flask-Login manages user sessions securely.
+**Authentication & Session Management:**
+- **Library:** Flask-Login for user session management
+- **Password Security:** Werkzeug's password hashing (PBKDF2-based)
+- **Form Validation:** Flask-WTF with WTForms validators
+- **Session Storage:** Server-side sessions with secure secret key (32+ characters required)
 
-**Key Components:**
-1. **app.py** - Main Flask application with route handlers, authentication, and API endpoints
-2. **database.py** - User model and database management (PostgreSQL via SQLAlchemy)
-3. **forms.py** - WTForms for login and registration validation
-4. **main.py** - Application entry point for deployment
-5. **Database Storage (PostgreSQL):**
-   - Stores user accounts (email, hashed passwords) in `users` table
-   - Managed via Flask-SQLAlchemy ORM
-6. **File Storage (per user):**
-   - `user_data/{user_id}/kursy.txt` - Stores ride records with timestamp, distance, time, earnings, hourly rate, and platform
-   - `user_data/{user_id}/cele.txt` - Stores user goals (daily target, minimum acceptable rate)
+**Security Measures:**
+- CSRF protection via Flask-WTF
+- Safe URL redirect validation to prevent open redirects
+- Environment-based secret key management
+- ProxyFix middleware for proper header handling behind reverse proxies
 
-**Authentication:**
-- **Flask-Login** - Session management and user authentication
-- **Flask-WTF** - Form validation with CSRF protection
-- **Bcrypt** - Secure password hashing (via werkzeug.security)
-- **Email validation** - Ensures valid email addresses during registration
+**Rationale:** Flask-Login provides robust session management out of the box, while WTForms handles validation and CSRF protection, reducing custom security code.
 
-**Rationale:** Hybrid approach combines the best of both worlds - PostgreSQL database for structured user data that requires querying (authentication) and file-based storage for sequential ride records that are simple to parse and backup. Each user has isolated data folders ensuring privacy and data separation. PostgreSQL provides better concurrent access, ACID compliance, and production-ready scalability.
+### Data Storage
 
-**Pros:** 
-- Scalable for multiple concurrent users
-- ACID compliance for data integrity
-- Portable file storage (files can be backed up/transferred easily)
-- Production-ready deployment
+**Database:** PostgreSQL (via SQLAlchemy ORM)
 
-**Cons:**
-- Requires PostgreSQL setup
-- Manual parsing required for analytics on ride data
-- File corruption risk without proper locking
-
-### Data Storage Solutions
-
-**Primary Storage:** Text file-based persistence with structured format.
+**ORM Configuration:**
+- **Library:** Flask-SQLAlchemy with declarative base
+- **Connection Pooling:** Pool size of 10, max overflow 20
+- **Connection Management:** Pre-ping enabled, 300s pool recycle, 10s timeout
+- **Timezone:** UTC configured at connection level
 
 **Data Models:**
+- **User Model:** Email-based authentication with hashed passwords, timestamps
+- **File-based Storage:** Per-user text files for ride history (`kursy.txt`) and goals (`cele.txt`)
 
-1. **Ride Records (kursy.txt):**
-   ```
-   [YYYY-MM-DD HH:MM:SS]
-   key: value
-   ----------------------------------------
-   ```
-   Includes: timestamp, pickup distance/time, ride distance/time, fare, fuel cost, profit, hourly rate, platform
+**Storage Pattern:**
+- User data stored in `user_data/{user_id}/` directories
+- Ride records in structured text format with timestamps
+- Daily summaries calculated and appended to history
 
-2. **User Goals (cele.txt):**
-   ```
-   cel_dzienny:450
-   min_stawka:30
-   ```
+**Rationale:** Hybrid approach using PostgreSQL for user authentication (ACID compliance for critical data) and file-based storage for ride history (simpler parsing, easier backup). This may need migration to full database storage for better querying and reporting capabilities.
 
-**Data Processing:** 
-- Sequential file reading for analytics
-- In-memory aggregation for statistics
-- Daily summaries appended to kursy.txt with automatic recalculation
+**Limitation:** Current file-based ride storage limits advanced querying and concurrent access. Migration to database tables recommended for production scale.
 
-**Rationale:** Append-only log format for ride records ensures data integrity and provides audit trail. Simple key-value format for goals allows easy updates.
+### Application Structure
 
-### State Management
+**Entry Points:**
+- `main.py` - Application launcher
+- `app.py` - Main Flask application with route definitions
+- `database.py` - Database models and initialization
+- `forms.py` - WTForms form definitions
 
-**Session Storage:** Flask server-side sessions with secret key for security. Used for temporary user preferences like theme selection (dark/light mode).
+**User Flow:**
+1. Registration/Login (email + password)
+2. User-specific data directory creation on registration
+3. Calculator input → profitability calculation → storage
+4. Statistics/reports generated from historical data
+5. Platform comparison and AI insights
 
-**Client-Side State:** Minimal - form values and theme preference stored in browser localStorage for PWA offline functionality.
-
-### API Structure
-
-**RESTful Endpoints (JSON APIs):**
-
-1. `POST /oblicz` - Calculate ride profitability, returns JSON with results and saves to file
-2. `GET /cele` - Retrieve user goals and daily progress
-3. `POST /cele` - Update user goals
-4. `GET /statystyki` - Render statistics page (server-side)
-5. `GET /platformy` - Render platform comparison page (server-side)
-6. `GET /api/statystyki` - Fetch statistics data as JSON for charts
-7. `GET /api/platformy` - Fetch platform comparison data as JSON
-
-**Data Flow:**
-1. User submits ride details via form
-2. Flask calculates profitability metrics (hourly rate, profit margin)
-3. Data saved to kursy.txt with timestamp
-4. Daily progress recalculated against goals
-5. Response sent to client for immediate display
-
-### Analytics & Visualization
-
-**Charting Library:** Plotly.js for interactive, responsive charts.
-
-**Chart Types:**
-- Line charts for hourly rate trends over time
-- Bar charts for platform comparison
-- Progress indicators for daily goals
-
-**Data Aggregation:** Server-side parsing of kursy.txt to generate:
-- Daily averages
-- Platform-wise statistics (average rate, total earnings, ride count)
-- Time-based analysis (best hours for earnings)
+**Calculation Logic:**
+- Fuel cost based on distance and consumption
+- Net profit = (Ride amount × Driver percentage) - Fuel cost
+- Hourly rate = Net profit / Total time (approach + ride)
+- Profitability ratings based on hourly thresholds
 
 ## External Dependencies
 
-### Third-Party Libraries
+### Third-Party Services
 
-1. **Flask (>=3.1.2)** - Web framework for Python
-   - Purpose: HTTP routing, template rendering, session management
-   - Used for: All backend logic and API endpoints
+**Analytics & Tracking:**
+- **Google Analytics (GA4):** Tag ID `G-YREKGGTGVE` for user behavior tracking
+- **Iubenda:** Cookie consent management (Site ID: 4275582, Policy ID: 77417804)
 
-2. **Plotly (>=6.3.1)** - Interactive graphing library
-   - Purpose: Data visualization
-   - Used for: Statistics charts and platform comparison graphs
+**Content Delivery:**
+- **Bootstrap CDN:** UI framework and icons delivery
+- **Plotly CDN:** Chart library for data visualization
 
-3. **Bootstrap 5.3.0** - CSS framework (CDN)
-   - Purpose: Responsive UI components
-   - Used for: Layout, forms, modals, cards, buttons
+### Cloud Infrastructure
 
-4. **Bootstrap Icons 1.11.0** - Icon library (CDN)
-   - Purpose: UI icons
-   - Used for: Navigation icons, status indicators
+**Database:**
+- PostgreSQL database (connection via `DATABASE_URL` environment variable)
+- Driver: `psycopg2-binary` for PostgreSQL connectivity
 
-5. **Native Cache API** - Browser caching API
-   - Purpose: PWA caching strategies and offline support
-   - Used for: Service worker implementation, offline functionality
+**Deployment Hints:**
+- Koyeb platform mentioned in manifest (start_url reference)
+- ProxyFix configured for reverse proxy deployment
+- Gunicorn listed as WSGI server for production
 
-### External Services
+### Python Dependencies
 
-**CDN Resources:**
-- Bootstrap CSS/JS from cdn.jsdelivr.net
-- Bootstrap Icons from cdn.jsdelivr.net  
-- Plotly.js from cdn.plot.ly
-- Workbox from storage.googleapis.com
+**Core Framework:**
+- `flask>=3.1.2` - Web framework
+- `flask-sqlalchemy` - ORM integration
+- `flask-login` - User session management
+- `flask-wtf` - Form handling and CSRF protection
 
-**Rationale:** CDN usage reduces bundle size and leverages browser caching across sites. However, creates dependency on external availability.
+**Security & Validation:**
+- `werkzeug` - Password hashing utilities
+- `email-validator` - Email format validation
+- `wtforms` - Form field validators
 
-**Offline Strategy:** Service worker caches CDN resources on first load, enabling offline functionality after initial visit.
+**Utilities:**
+- `plotly>=6.3.1` - Data visualization
+- `requests` - HTTP client (likely for external API calls)
+- `pillow` - Image processing (likely for icon generation)
+
+**Production Server:**
+- `gunicorn` - WSGI HTTP server
+
+### Environment Variables Required
+
+- `SESSION_SECRET` - Flask session encryption key (minimum 32 characters)
+- `DATABASE_URL` - PostgreSQL connection string
 
 ### PWA Configuration
 
-**Manifest (manifest.json):**
-- App name: "Taxi Calculator - Kalkulator Opłacalności"
-- Display mode: Standalone (full-screen app experience)
-- Theme color: #667eea (purple gradient)
-- Icons: 512x512 maskable icon for various devices
-- Categories: Productivity, Finance, Business
+**Manifest:** `/static/manifest.json`
+- App installable as standalone application
+- Theme color: `#667eea` (purple)
+- 512x512 icon with maskable support
+- Polish language (pl) primary
+- Categories: productivity, finance, business
 
-**Service Worker Strategy:**
-- StaleWhileRevalidate for HTML/API responses (show cached, update in background)
-- CacheFirst for static assets (images, fonts)
-- Versioned cache names for updates (taxi-calculator-offline-v1)
-
-### Deployment Considerations
-
-**Database:** PostgreSQL database required for user authentication. Connection configured via DATABASE_URL environment variable.
-
-**Authentication:** Multi-user authentication system implemented with Flask-Login. Email/password authentication with bcrypt password hashing.
-
-**File Storage:** Ride data stored locally on server filesystem in user-specific folders. Consider adding cloud backup integration (Dropbox, Google Drive) for data persistence.
-
-**Environment Variables:**
-- `DATABASE_URL` - PostgreSQL connection string
-- `SESSION_SECRET` - Flask session secret key
-- Other PostgreSQL connection variables (PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE)
-
-**Production Server:** Configured to run with Gunicorn on port 5000. ProxyFix middleware included for proper HTTPS URL generation.
+**Service Worker:** Offline caching strategy with runtime and precache
+- Cache name versioning: `taxi-calculator-offline-v3`
+- Precached assets: static files, icons, manifest
+- Network-first strategy with fallback to cache
