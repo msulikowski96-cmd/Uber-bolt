@@ -147,12 +147,16 @@ def get_user_file(filename):
     return f'{user_folder}/{filename}'
 
 def zapisz_do_pliku(dane):
-    plik_path = get_user_file('kursy.txt')
-    with open(plik_path, "a", encoding="utf-8") as plik:
-        plik.write(f"\n[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]\n")
-        for klucz, wartosc in dane.items():
-            plik.write(f"{klucz}: {wartosc}\n")
-        plik.write("-" * 40 + "\n")
+    try:
+        plik_path = get_user_file('kursy.txt')
+        with open(plik_path, "a", encoding="utf-8") as plik:
+            plik.write(f"\n[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]\n")
+            for klucz, wartosc in dane.items():
+                plik.write(f"{klucz}: {wartosc}\n")
+            plik.write("-" * 40 + "\n")
+    except Exception as e:
+        print(f"Błąd zapisu do pliku: {e}")
+        raise
 
 def wczytaj_cele():
     """Wczytuje cele użytkownika z pliku."""
@@ -498,6 +502,22 @@ def service_worker():
 @login_required
 def oblicz():
     dane = request.json
+    
+    # Walidacja wymaganych pól
+    wymagane_pola = ['dystans_dojazdu', 'czas_dojazdu', 'dystans_kursu', 'czas_kursu', 
+                     'kwota', 'procent_dla_kierowcy', 'spalanie', 'cena_paliwa']
+    
+    brakujace = [pole for pole in wymagane_pola if pole not in dane]
+    if brakujace:
+        return jsonify({"error": f"Brakujące pola: {', '.join(brakujace)}"}), 400
+    
+    # Walidacja czy wartości są liczbami
+    try:
+        for pole in wymagane_pola:
+            float(dane[pole])
+    except (ValueError, TypeError):
+        return jsonify({"error": f"Pole {pole} musi być liczbą"}), 400
+    
     wynik = oblicz_oplacalnosc(dane)
     return jsonify(wynik)
 
@@ -1042,8 +1062,8 @@ def api_kilometry():
             dystans_miesiac += dystans
             dni_w_miesiacu.add(k.get("data"))
     
-    koszt_na_km = calkowity_koszt / calkowity_dystans if calkowity_dystans > 0 else 0
-    srednia_dzien = dystans_miesiac / len(dni_w_miesiacu) if dni_w_miesiacu else 0
+    koszt_na_km = (calkowity_koszt / calkowity_dystans) if calkowity_dystans > 0 else 0
+    srednia_dzien = (dystans_miesiac / len(dni_w_miesiacu)) if len(dni_w_miesiacu) > 0 else 0
     
     return jsonify({
         "calkowite": f"{calkowity_dystans:.0f}",
@@ -1366,6 +1386,19 @@ Odpowiedz konkretnie i praktycznie (max 200 słów). Używaj danych użytkownika
         return jsonify({
             'analiza': f'❌ Wystąpił nieoczekiwany błąd:\n\n{str(e)}'
         })
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Nie znaleziono zasobu"}), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"error": "Wewnętrzny błąd serwera"}), 500
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    print(f"Nieobsłużony błąd: {e}")
+    return jsonify({"error": "Wystąpił nieoczekiwany błąd"}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
