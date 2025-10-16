@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.security import check_password_hash
 from urllib.parse import urlparse, urljoin
 import datetime
 import os
@@ -393,12 +394,16 @@ def login():
     
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.verify_password(form.email.data, form.password.data)
-        if user:
+        user = User.get_by_email(form.email.data)
+        
+        # Sprawdź czy użytkownik istnieje i hasło jest poprawne
+        if user and check_password_hash(user.password_hash, form.password.data):
+            # Sprawdź czy email jest zweryfikowany
             if not user.email_verified:
-                flash('Musisz najpierw potwierdzić swój adres email. Sprawdź swoją skrzynkę pocztową.', 'warning')
-                return render_template('login.html', form=form)
+                flash('⚠️ Musisz najpierw potwierdzić swój adres email. Sprawdź swoją skrzynkę pocztową (także folder SPAM).', 'warning')
+                return render_template('login.html', form=form, show_resend=True)
             
+            # Email zweryfikowany - zaloguj użytkownika
             login_user(user)
             flash('Zalogowano pomyślnie!', 'success')
             next_page = request.args.get('next')
@@ -408,7 +413,7 @@ def login():
         else:
             flash('Nieprawidłowy email lub hasło.', 'error')
     
-    return render_template('login.html', form=form)
+    return render_template('login.html', form=form, show_resend=False)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

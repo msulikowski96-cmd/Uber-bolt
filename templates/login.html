@@ -216,11 +216,16 @@
             <p class="mb-0">Nie masz konta? <a href="{{ url_for('register') }}" class="register-link"><i class="bi bi-person-plus-fill"></i> Zarejestruj się</a></p>
         </div>
 
+        {% if show_resend %}
         <div class="text-center mt-3">
-            <button type="button" class="btn btn-link text-muted" data-bs-toggle="modal" data-bs-target="#resendModal">
-                <i class="bi bi-envelope-fill"></i> Nie otrzymałeś emaila weryfikacyjnego?
+            <div class="alert alert-info" style="background: rgba(59, 130, 246, 0.2); border-color: #3b82f6;">
+                <i class="bi bi-info-circle-fill"></i> Twoje konto wymaga weryfikacji emaila.
+            </div>
+            <button type="button" class="btn btn-link" style="color: #8b5cf6; font-weight: 600;" data-bs-toggle="modal" data-bs-target="#resendModal">
+                <i class="bi bi-envelope-fill"></i> Wyślij ponownie email weryfikacyjny
             </button>
         </div>
+        {% endif %}
     </div>
 
     <!-- Modal do ponownego wysłania emaila -->
