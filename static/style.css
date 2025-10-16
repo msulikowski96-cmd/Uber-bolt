@@ -1,10 +1,10 @@
 
 :root {
-    /* Nowa paleta kolorów - ciemny premium theme */
-    --primary-bg: #0f172a;
-    --secondary-bg: #1e293b;
-    --card-bg: #1e293b;
-    --sidebar-bg: #0f172a;
+    /* Nowa paleta kolorów - jasny, świeży theme */
+    --primary-bg: #f8fafc;
+    --secondary-bg: #ffffff;
+    --card-bg: #ffffff;
+    --sidebar-bg: #ffffff;
     
     /* Akcenty - gradient fioletowo-niebieski */
     --accent-primary: #8b5cf6;
@@ -18,16 +18,16 @@
     --info-color: #06b6d4;
     
     /* Tekst */
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
     
     /* Elementy UI */
-    --border-color: #334155;
+    --border-color: #e2e8f0;
     --border-radius: 16px;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
 }
 
 * {
@@ -45,12 +45,12 @@ body {
 
 /* Sidebar z gradientem */
 .sidebar {
-    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-    color: white;
+    background: var(--sidebar-bg);
+    color: var(--text-primary);
     min-height: 100vh;
     padding: 30px 20px;
-    box-shadow: 4px 0 20px rgba(139, 92, 246, 0.2);
-    border-right: 2px solid rgba(139, 92, 246, 0.3);
+    box-shadow: 4px 0 20px rgba(139, 92, 246, 0.1);
+    border-right: 2px solid var(--border-color);
 }
 
 .logo-section {
@@ -72,7 +72,7 @@ body {
     font-weight: 700;
     letter-spacing: 0.5px;
     margin-top: 15px;
-    color: white;
+    color: var(--text-primary);
 }
 
 .logo-section p.text-muted {
@@ -85,14 +85,15 @@ body {
     padding: 12px 20px;
     font-weight: 500;
     transition: all 0.3s ease;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--border-color);
+    background: var(--primary-bg);
+    color: var(--text-primary);
 }
 
 .sidebar .btn-outline-light:hover {
     border-color: var(--accent-primary);
-    background: rgba(139, 92, 246, 0.2);
-    color: white;
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--accent-primary);
     transform: translateX(5px);
 }
 
@@ -102,13 +103,12 @@ body {
 }
 
 .stats-section {
-    background: rgba(139, 92, 246, 0.15);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
     border-radius: var(--border-radius);
     padding: 25px;
     margin-top: 30px;
     text-align: center;
-    border: 2px solid rgba(139, 92, 246, 0.3);
-    backdrop-filter: blur(10px);
+    border: 2px solid rgba(139, 92, 246, 0.2);
 }
 
 .stats-section h5 {
@@ -169,13 +169,12 @@ body {
 
 /* Cards z gradientem i glassmorphism */
 .card {
-    background: rgba(30, 41, 59, 0.8);
+    background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     margin-bottom: 25px;
     box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
 }
 
 .card:hover {
@@ -223,7 +222,7 @@ body {
 .form-control, .form-select {
     border-radius: var(--border-radius);
     border: 2px solid var(--border-color);
-    background: rgba(15, 23, 42, 0.5);
+    background: var(--secondary-bg);
     color: var(--text-primary);
     padding: 12px 18px;
     transition: all 0.2s ease;
@@ -232,8 +231,8 @@ body {
 
 .form-control:focus, .form-select:focus {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
-    background: rgba(15, 23, 42, 0.7);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    background: var(--secondary-bg);
     color: var(--text-primary);
 }
 
@@ -291,13 +290,12 @@ body {
 
 /* Result boxes z glassmorphism */
 .result-box {
-    background: rgba(139, 92, 246, 0.1);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
     border-radius: var(--border-radius);
     padding: 25px;
     margin-bottom: 20px;
     transition: all 0.3s ease;
-    border: 2px solid rgba(139, 92, 246, 0.3);
-    backdrop-filter: blur(10px);
+    border: 2px solid rgba(139, 92, 246, 0.15);
 }
 
 .result-box:hover {
@@ -354,8 +352,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     transition: all 0.3s ease;
-    background: rgba(30, 41, 59, 0.8);
-    backdrop-filter: blur(10px);
+    background: var(--card-bg);
 }
 
 .stat-card:hover {
@@ -403,15 +400,15 @@ body {
 /* Mobile Header z gradientem */
 .mobile-header {
     display: none;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    color: white;
+    background: var(--secondary-bg);
+    color: var(--text-primary);
     padding: 15px 20px;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    border-bottom: 2px solid rgba(139, 92, 246, 0.5);
+    border-bottom: 2px solid var(--border-color);
     align-items: center;
     gap: 15px;
     box-shadow: var(--shadow-md);
@@ -420,7 +417,7 @@ body {
 .hamburger-btn {
     background: transparent;
     border: none;
-    color: white;
+    color: var(--text-primary);
     font-size: 1.8rem;
     cursor: pointer;
     padding: 5px 10px;
@@ -518,7 +515,7 @@ body {
 }
 
 .table tbody tr:hover {
-    background-color: rgba(139, 92, 246, 0.1);
+    background-color: rgba(139, 92, 246, 0.05);
 }
 
 /* Modal */
@@ -557,7 +554,7 @@ body {
     right: 20px;
     background: transparent;
     border: none;
-    color: white;
+    color: var(--text-primary);
     font-size: 1.5rem;
     cursor: pointer;
     z-index: 1001;
