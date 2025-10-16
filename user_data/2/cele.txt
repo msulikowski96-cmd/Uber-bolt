@@ -1,0 +1,2 @@
+cel_dzienny:300
+min_stawka:30
