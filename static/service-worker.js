@@ -1,5 +1,5 @@
-const CACHE = "taxi-calculator-offline-v2";
-const RUNTIME = "taxi-calculator-runtime";
+const CACHE = "taxi-calculator-offline-v3";
+const RUNTIME = "taxi-calculator-runtime-v3";
 
 const PRECACHE_URLS = [
   '/',

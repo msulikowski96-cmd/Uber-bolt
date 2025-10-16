@@ -1143,7 +1143,7 @@ Odpowiedz konkretnie i praktycznie (max 200 słów). Używaj danych użytkownika
         api_key = os.environ.get('OPENROUTER_API_KEY')
         if not api_key:
             return jsonify({
-                'analiza': 'Brak klucza API. Skonfiguruj OPENROUTER_API_KEY w ustawieniach.'
+                'analiza': '⚠️ AI Asystent wymaga klucza API OpenRouter.\n\nAby skonfigurować:\n1. Przejdź do zakładki Secrets (🔒)\n2. Dodaj nowy secret:\n   - Key: OPENROUTER_API_KEY\n   - Value: Twój klucz z openrouter.ai\n\n💡 Możesz uzyskać darmowy klucz na https://openrouter.ai'
             })
         
         response = requests.post(
