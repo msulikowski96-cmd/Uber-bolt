@@ -156,6 +156,28 @@
             </div>
         </div>
 
+        <!-- Podsumowanie gotówki -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card text-center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                    <div class="card-body">
+                        <h6><i class="bi bi-cash-coin"></i> Odebrano gotówką</h6>
+                        <h2 id="gotowkaRazem">0 zł</h2>
+                        <small id="gotowkaKursy">0 kursów gotówkowych</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-center" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white;">
+                    <div class="card-body">
+                        <h6><i class="bi bi-credit-card"></i> Płatności kartą</h6>
+                        <h2 id="kartaRazem">0 zł</h2>
+                        <small id="kartaKursy">0 kursów kartą</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Rozbudowany kalkulator podatków -->
         <div class="card mb-4">
             <div class="card-body">
@@ -467,6 +489,12 @@
             document.getElementById('zarobkiNetto').textContent = dane.zarobki_netto + ' zł';
             document.getElementById('liczbaKursow').textContent = dane.liczba_kursow;
             document.getElementById('przejechaneKm').textContent = dane.przejechane_km + ' km';
+            
+            // Statystyki gotówki
+            document.getElementById('gotowkaRazem').textContent = dane.gotowka_razem + ' zł';
+            document.getElementById('gotowkaKursy').textContent = dane.gotowka_kursy + ' kursów gotówkowych';
+            document.getElementById('kartaRazem').textContent = dane.karta_razem + ' zł';
+            document.getElementById('kartaKursy').textContent = dane.karta_kursy + ' kursów kartą';
             
             // Ustaw przychód w kalkulatorze
             document.getElementById('przychodBrutto').value = dane.zarobki_brutto;

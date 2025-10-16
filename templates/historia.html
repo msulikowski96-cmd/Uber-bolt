@@ -213,6 +213,7 @@
                                 <th>Kwota</th>
                                 <th>Zysk</th>
                                 <th>Stawka</th>
+                                <th class="hide-mobile">Płatność</th>
                             </tr>
                         </thead>
                         <tbody id="history-tbody">
@@ -330,13 +331,17 @@
 
                     <div class="alert alert-info mt-3" role="alert">
                         <div class="row align-items-center">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <strong><i class="bi bi-speedometer"></i> Stawka godzinowa:</strong>
                                 <span class="fs-5" id="detail-hourly-rate">--</span>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <strong><i class="bi bi-percent"></i> Procent dla kierowcy:</strong>
                                 <span class="fs-5" id="detail-driver-percent">--</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong><i class="bi bi-cash-coin"></i> Płatność:</strong>
+                                <span class="fs-5" id="detail-payment-type">--</span>
                             </div>
                         </div>
                     </div>
@@ -420,6 +425,7 @@
                 const platformClass = getPlatformClass(platform);
                 const rateValue = parseFloat(ride['Stawka godzinowa']?.replace('zł/h', '').trim() || 0);
                 const rateClass = getRateClass(rateValue);
+                const czyGotowka = ride['Płatność gotówką'] === 'tak';
                 
                 // Parsuj dystans i czas
                 const dystansDojazdu = parseFloat(ride['Dystans dojazdu (km)'] || 0);
@@ -439,6 +445,7 @@
                         <td><strong>${ride['Kwota (z napiwkiem)'] || '--'}</strong></td>
                         <td>${ride['Zysk netto'] || '--'}</td>
                         <td><span class="${rateClass}">${ride['Stawka godzinowa'] || '--'}</span></td>
+                        <td class="hide-mobile">${czyGotowka ? '<i class="bi bi-cash-coin text-success" title="Gotówka"></i>' : '<i class="bi bi-credit-card text-muted" title="Karta"></i>'}</td>
                     </tr>
                 `;
             }).join('');
@@ -519,6 +526,10 @@
             document.getElementById('detail-profit').textContent = ride['Zysk netto'] || '--';
             document.getElementById('detail-hourly-rate').textContent = ride['Stawka godzinowa'] || '--';
             document.getElementById('detail-driver-percent').textContent = ride['Procent dla kierowcy'] || '--';
+            
+            // Płatność
+            const platnosc = ride['Płatność gotówką'] === 'tak' ? '💵 Gotówka' : '💳 Karta';
+            document.getElementById('detail-payment-type').textContent = platnosc;
 
             // Ocena
             const ocena = ride['Ocena'] || 'Brak oceny';

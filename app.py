@@ -308,6 +308,7 @@ def oblicz_oplacalnosc(dane):
     spalanie = float(dane['spalanie'])
     cena_paliwa = float(dane['cena_paliwa'])
     platforma = dane.get('platforma', 'Nieznana')
+    platnosc_gotowka = dane.get('platnosc_gotowka', 'nie')
 
     dystans_calkowity = dystans_dojazdu + dystans_kursu
     czas_calkowity_h = (czas_dojazdu + czas_kursu) / 60
@@ -340,6 +341,7 @@ def oblicz_oplacalnosc(dane):
         "Koszt paliwa": f"{koszt_paliwa:.2f} zł",
         "Zysk netto": f"{zysk_netto:.2f} zł",
         "Stawka godzinowa": f"{stawka_godzinowa:.2f} zł/h",
+        "Płatność gotówką": platnosc_gotowka,
         "Ocena": ocena
     }
 
@@ -836,6 +838,8 @@ def api_raport():
             kurs = {"data": linia[1:20]}
         elif "Kwota (z napiwkiem):" in linia:
             kurs["kwota"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
+        elif "Płatność gotówką:" in linia:
+            kurs["platnosc_gotowka"] = linia.strip().split(":")[1].strip()
         elif "Zysk netto:" in linia:
             kurs["zysk"] = float(linia.strip().split(":")[1].replace("zł", "").strip())
         elif "Dystans dojazdu (km):" in linia:
@@ -858,11 +862,21 @@ def api_raport():
     liczba_kursow = len(kursy_okresu)
     przejechane_km = sum(k.get("dystans_dojazd", 0) + k.get("dystans_kurs", 0) for k in kursy_okresu)
     
+    # Statystyki gotówki
+    gotowka_razem = sum(k.get("kwota", 0) for k in kursy_okresu if k.get("platnosc_gotowka") == "tak")
+    gotowka_kursy = len([k for k in kursy_okresu if k.get("platnosc_gotowka") == "tak"])
+    karta_razem = sum(k.get("kwota", 0) for k in kursy_okresu if k.get("platnosc_gotowka") != "tak")
+    karta_kursy = len([k for k in kursy_okresu if k.get("platnosc_gotowka") != "tak"])
+    
     return jsonify({
         "zarobki_brutto": f"{zarobki_brutto:.2f}",
         "zarobki_netto": f"{zarobki_netto:.2f}",
         "liczba_kursow": liczba_kursow,
-        "przejechane_km": f"{przejechane_km:.2f}"
+        "przejechane_km": f"{przejechane_km:.2f}",
+        "gotowka_razem": f"{gotowka_razem:.2f}",
+        "gotowka_kursy": gotowka_kursy,
+        "karta_razem": f"{karta_razem:.2f}",
+        "karta_kursy": karta_kursy
     })
 
 @app.route('/api/prognoza')
