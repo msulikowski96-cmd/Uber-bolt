@@ -12,6 +12,8 @@ Taxi Calculator is a Progressive Web Application (PWA) designed for taxi drivers
   - **Platform comparison** - AI-powered insights on which platforms are most profitable
   - **Custom questions** - Ask AI anything about your ride data
   - Uses OpenRouter API with Qwen 2.5 VL 72B (free tier) for cost-effective analysis
+  - **Enhanced error handling** - 60s timeout, detailed error messages for rate limits, auth issues, and network problems
+  - **Known limitation**: Free AI model may have rate limits - if unavailable, wait 1-2 minutes and retry
 - **Ride detail modal** - Click on any ride in history table to view complete details (pickup distance/time, ride distance/time, full financial breakdown, platform, rating) in a Bootstrap modal
 - **Ride history table** - New dedicated page showing all rides in a filterable table with platform badges, date filters, and mobile-responsive design
 - **Mobile-friendly navigation** - Added hamburger menu with overlay sidebar for better mobile experience across all pages

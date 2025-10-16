@@ -1174,21 +1174,38 @@ Odpowiedz konkretnie i praktycznie (max 200 słów). Używaj danych użytkownika
                 'max_tokens': 500,
                 'temperature': 0.7
             },
-            timeout=30
+            timeout=60
         )
         
         if response.status_code == 200:
             result = response.json()
             analiza_text = result['choices'][0]['message']['content']
             return jsonify({'analiza': analiza_text})
-        else:
+        elif response.status_code == 429:
             return jsonify({
-                'analiza': f'Błąd API: {response.status_code}. Sprawdź klucz API i spróbuj ponownie.'
+                'analiza': '⏳ Model AI jest teraz zajęty. Spróbuj ponownie za chwilę.\n\n💡 Darmowy model ma limity zapytań. Poczekaj 1-2 minuty i spróbuj ponownie.'
+            })
+        elif response.status_code == 401:
+            return jsonify({
+                'analiza': '🔑 Błąd autoryzacji. Sprawdź czy klucz API w Secrets jest prawidłowy.'
+            })
+        else:
+            error_msg = response.text if response.text else 'Nieznany błąd'
+            return jsonify({
+                'analiza': f'⚠️ API zwróciło błąd ({response.status_code}):\n\n{error_msg}\n\nSpróbuj ponownie za chwilę.'
             })
             
+    except requests.exceptions.Timeout:
+        return jsonify({
+            'analiza': '⏱️ Przekroczono czas oczekiwania (60s).\n\nModel AI nie odpowiedział na czas. Spróbuj ponownie - czasem darmowy model jest wolniejszy.'
+        })
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            'analiza': f'🌐 Błąd połączenia z API:\n\n{str(e)}\n\nSprawdź połączenie internetowe i spróbuj ponownie.'
+        })
     except Exception as e:
         return jsonify({
-            'analiza': f'Wystąpił błąd: {str(e)}'
+            'analiza': f'❌ Wystąpił nieoczekiwany błąd:\n\n{str(e)}'
         })
 
 if __name__ == '__main__':
