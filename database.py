@@ -1,4 +1,5 @@
 import os
+import secrets
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -15,6 +16,8 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    email_verified = db.Column(db.Boolean, default=False, nullable=False)
+    verification_token = db.Column(db.String(100), unique=True, nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     
     @staticmethod
@@ -31,11 +34,14 @@ class User(UserMixin, db.Model):
     def create(email, password):
         """Tworzy nowego użytkownika"""
         password_hash = generate_password_hash(password)
+        verification_token = secrets.token_urlsafe(32)
         
         try:
             user = User()
             user.email = email
             user.password_hash = password_hash
+            user.email_verified = False
+            user.verification_token = verification_token
             db.session.add(user)
             db.session.commit()
             
@@ -62,6 +68,22 @@ class User(UserMixin, db.Model):
         if user and check_password_hash(user.password_hash, password):
             return user
         return None
+    
+    @staticmethod
+    def verify_email(token):
+        """Weryfikuje email użytkownika"""
+        user = User.query.filter_by(verification_token=token).first()
+        if user:
+            user.email_verified = True
+            user.verification_token = None
+            db.session.commit()
+            return True
+        return False
+    
+    @staticmethod
+    def get_by_token(token):
+        """Pobiera użytkownika po tokenie weryfikacyjnym"""
+        return User.query.filter_by(verification_token=token).first()
 
 def get_user_folder(user_id):
     """Zwraca ścieżkę folderu użytkownika"""

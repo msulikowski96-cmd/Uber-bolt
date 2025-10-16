@@ -215,6 +215,36 @@
         <div class="text-center">
             <p class="mb-0">Nie masz konta? <a href="{{ url_for('register') }}" class="register-link"><i class="bi bi-person-plus-fill"></i> Zarejestruj się</a></p>
         </div>
+
+        <div class="text-center mt-3">
+            <button type="button" class="btn btn-link text-muted" data-bs-toggle="modal" data-bs-target="#resendModal">
+                <i class="bi bi-envelope-fill"></i> Nie otrzymałeś emaila weryfikacyjnego?
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal do ponownego wysłania emaila -->
+    <div class="modal fade" id="resendModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: #1e293b; color: #f1f5f9;">
+                <div class="modal-header" style="border-color: #334155;">
+                    <h5 class="modal-title">Wyślij ponownie email weryfikacyjny</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('resend_verification') }}">
+                    <div class="modal-body">
+                        <p>Podaj adres email użyty podczas rejestracji:</p>
+                        <input type="email" name="email" class="form-control" placeholder="twoj@email.pl" required>
+                    </div>
+                    <div class="modal-footer" style="border-color: #334155;">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-envelope-fill"></i> Wyślij ponownie
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Footer z prawami autorskimi -->

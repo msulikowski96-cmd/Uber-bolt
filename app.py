@@ -4,6 +4,9 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from urllib.parse import urlparse, urljoin
 import datetime
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from database import db, User, get_user_folder, init_db
 from forms import LoginForm, RegistrationForm
 
@@ -48,6 +51,93 @@ def is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
+
+def wyslij_email_weryfikacyjny(email, token):
+    """Wysyła email z linkiem weryfikacyjnym"""
+    try:
+        smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.environ.get('SMTP_PORT', 587))
+        smtp_user = os.environ.get('SMTP_USER')
+        smtp_password = os.environ.get('SMTP_PASSWORD')
+        
+        if not smtp_user or not smtp_password:
+            print("SMTP credentials not configured")
+            return False
+        
+        link_weryfikacyjny = url_for('verify_email', token=token, _external=True)
+        
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = 'Potwierdź swój adres email - Taxi Calculator'
+        msg['From'] = smtp_user
+        msg['To'] = email
+        
+        text = f"""
+Witaj!
+
+Dziękujemy za rejestrację w Taxi Calculator.
+
+Aby aktywować swoje konto, kliknij w poniższy link:
+{link_weryfikacyjny}
+
+Link jest ważny przez 24 godziny.
+
+Jeśli nie rejestrowałeś się w Taxi Calculator, zignoruj tę wiadomość.
+
+Pozdrawiamy,
+Zespół Taxi Calculator
+        """
+        
+        html = f"""
+<html>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #667eea;">🚕 Taxi Calculator</h2>
+      <p>Witaj!</p>
+      <p>Dziękujemy za rejestrację w Taxi Calculator.</p>
+      <p>Aby aktywować swoje konto, kliknij w poniższy przycisk:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="{link_weryfikacyjny}" 
+           style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white;
+                  padding: 15px 30px;
+                  text-decoration: none;
+                  border-radius: 8px;
+                  display: inline-block;
+                  font-weight: bold;">
+          Potwierdź adres email
+        </a>
+      </div>
+      <p style="color: #666; font-size: 14px;">
+        Lub skopiuj i wklej ten link do przeglądarki:<br>
+        <a href="{link_weryfikacyjny}" style="color: #667eea;">{link_weryfikacyjny}</a>
+      </p>
+      <p style="color: #666; font-size: 14px;">
+        Link jest ważny przez 24 godziny.
+      </p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+      <p style="color: #999; font-size: 12px;">
+        Jeśli nie rejestrowałeś się w Taxi Calculator, zignoruj tę wiadomość.
+      </p>
+    </div>
+  </body>
+</html>
+        """
+        
+        part1 = MIMEText(text, 'plain')
+        part2 = MIMEText(html, 'html')
+        
+        msg.attach(part1)
+        msg.attach(part2)
+        
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_password)
+            server.send_message(msg)
+        
+        return True
+    except Exception as e:
+        print(f"Error sending email: {str(e)}")
+        return False
 
 def get_user_file(filename):
     """Zwraca ścieżkę do pliku użytkownika"""
@@ -303,6 +393,10 @@ def login():
     if form.validate_on_submit():
         user = User.verify_password(form.email.data, form.password.data)
         if user:
+            if not user.email_verified:
+                flash('Musisz najpierw potwierdzić swój adres email. Sprawdź swoją skrzynkę pocztową.', 'warning')
+                return render_template('login.html', form=form)
+            
             login_user(user)
             flash('Zalogowano pomyślnie!', 'success')
             next_page = request.args.get('next')
@@ -323,12 +417,57 @@ def register():
     if form.validate_on_submit():
         user = User.create(form.email.data, form.password.data)
         if user:
-            flash('Konto utworzone pomyślnie! Możesz się teraz zalogować.', 'success')
+            # Wysyłanie emaila weryfikacyjnego
+            if wyslij_email_weryfikacyjny(user.email, user.verification_token):
+                flash('Konto utworzone! Sprawdź swoją skrzynkę email i kliknij w link aktywacyjny.', 'success')
+            else:
+                flash('Konto utworzone, ale nie udało się wysłać emaila weryfikacyjnego. Skontaktuj się z administratorem.', 'warning')
             return redirect(url_for('login'))
         else:
             flash('Ten email jest już zarejestrowany.', 'error')
     
     return render_template('register.html', form=form)
+
+@app.route('/verify-email/<token>')
+def verify_email(token):
+    """Weryfikuje email użytkownika"""
+    user = User.get_by_token(token)
+    
+    if not user:
+        flash('Link weryfikacyjny jest nieprawidłowy lub wygasł.', 'error')
+        return redirect(url_for('login'))
+    
+    if user.email_verified:
+        flash('Ten email jest już zweryfikowany. Możesz się zalogować.', 'info')
+        return redirect(url_for('login'))
+    
+    if User.verify_email(token):
+        flash('Email został pomyślnie zweryfikowany! Możesz się teraz zalogować.', 'success')
+    else:
+        flash('Wystąpił błąd podczas weryfikacji emaila.', 'error')
+    
+    return redirect(url_for('login'))
+
+@app.route('/resend-verification', methods=['POST'])
+def resend_verification():
+    """Ponownie wysyła email weryfikacyjny"""
+    email = request.form.get('email')
+    user = User.get_by_email(email)
+    
+    if not user:
+        flash('Nie znaleziono użytkownika z tym adresem email.', 'error')
+        return redirect(url_for('login'))
+    
+    if user.email_verified:
+        flash('Ten email jest już zweryfikowany.', 'info')
+        return redirect(url_for('login'))
+    
+    if wyslij_email_weryfikacyjny(user.email, user.verification_token):
+        flash('Email weryfikacyjny został wysłany ponownie. Sprawdź swoją skrzynkę.', 'success')
+    else:
+        flash('Nie udało się wysłać emaila. Spróbuj ponownie później.', 'error')
+    
+    return redirect(url_for('login'))
 
 @app.route('/logout')
 @login_required
