@@ -498,6 +498,11 @@ def service_worker():
     from flask import send_from_directory
     return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
 
+@app.route('/ads.txt')
+def ads_txt():
+    from flask import send_from_directory
+    return send_from_directory('static', 'ads.txt', mimetype='text/plain')
+
 @app.route('/oblicz', methods=['POST'])
 @login_required
 def oblicz():
